@@ -21,3 +21,11 @@ This document contains coding guidelines, standards, and steering rules derived 
 * **Citations & Links**: Provide markdown links to original sources or authoritative documentation when referencing external definitions or tools. Citations should prefer permalinks when possible, or else include a "retrieved at" date.
 * **Code Documentation & Comments**: Code documentation should be on functions, and only be placed within functions when strictly necessary to explain complexity or constants/magic numbers.
 
+## 4. Tool Preferences
+* **Scripting & Command Line Utilities**: Only drop to Python as a last resort. Prefer higher-level scripting and standard utilities like `jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.
+
+## 5. Tool Usage
+### Git
+* **Sign Commits**: Always sign commits and prompt the user if signing fails.
+* **Pushing**: Prompt the user before pushing commits, unless explicit permission to push has been granted for the current session.
+
