@@ -28,6 +28,17 @@ This document contains coding guidelines, standards, and steering rules derived 
 ### Git
 * **Sign Commits**: Always sign commits and prompt the user if signing fails.
 * **Pushing**: Prompt the user before pushing commits, unless explicit permission to push has been granted for the current session.
-* **Metadata Tags**: All commits created, rebased, merged, etc. by agentic tools or LLMs should include an appropriate git metadata tag `Assisted-by` unless otherwise specified.
+* **Metadata Tags**: All commits created, rebased, merged, etc. by agentic tools or LLMs should include an appropriate git metadata tag `Assisted-by` unless otherwise specified, following the [Linux Kernel AI Coding Assistants guidelines](https://docs.kernel.org/process/coding-assistants.html#attribution):
+    
+    Format:
+    `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]`
+    
+    * `AGENT_NAME`: The name of the AI tool or framework
+    * `MODEL_VERSION`: The specific version of the model used
+    * `[TOOL1] [TOOL2]`: Optional specialized analysis tools used alongside the AI (e.g., `coccinelle`, `sparse`, `smatch`, `clang-tidy`). Basic development tools (`git`, `gcc`, `make`, editors) should not be listed.
+    
+    Example:
+    `Assisted-by: Claude:claude-3-opus coccinelle sparse`
+
 
 
