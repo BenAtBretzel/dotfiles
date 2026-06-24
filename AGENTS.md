@@ -28,4 +28,6 @@ This document contains coding guidelines, standards, and steering rules derived 
 ### Git
 * **Sign Commits**: Always sign commits and prompt the user if signing fails.
 * **Pushing**: Prompt the user before pushing commits, unless explicit permission to push has been granted for the current session.
+* **Metadata Tags**: All commits created, rebased, merged, etc. by agentic tools or LLMs should include an appropriate git metadata tag `Assisted-by` unless otherwise specified.
+
 
