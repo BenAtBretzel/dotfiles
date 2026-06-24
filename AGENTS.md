@@ -20,7 +20,7 @@ This document contains coding guidelines, standards, and steering rules derived 
 * **Terse & Concise**: Maintain a professional tone bordering on terse. Avoid conversational filler.
 * **Citations & Links**: Provide markdown links to original sources or authoritative documentation when referencing external definitions or tools. Citations should prefer permalinks when possible, or else include a "retrieved at" date.
 * **Code Documentation & Comments**: Code documentation should be on functions, and only be placed within functions when strictly necessary to explain complexity or constants/magic numbers.
-* **Emojis**: Avoid emojis unless specifically requested.
+* **Emojis**: Avoid emojis.
 
 ## 4. Tool Preferences & Usage
 * **Scripting & Command Line Utilities**: Only drop to Python as a last resort. Prefer higher-level scripting and standard utilities like `jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.
