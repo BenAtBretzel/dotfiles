@@ -40,6 +40,12 @@ This document contains coding guidelines, standards, and steering rules derived 
     Example:
     `Assisted-by: Claude:claude-3-opus coccinelle sparse`
 
+### GitHub
+* **GitHub CLI**: Use `gh` for interacting with github.com (e.g., PRs, issues, repos, releases, gists).
+
+### AWS
+* **AWS CLI**: Use `aws` for interacting with Amazon Web Services (e.g., S3, EC2, Lambda, IAM, CloudFormation).
+
 ### Clipboard
 * **Clipboard Interactions**: Clipboard interactions should use the `wl-copy` and `wl-paste` class of tools.
 
