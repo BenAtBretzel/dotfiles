@@ -22,7 +22,8 @@ if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ] && [ -z "$OPENROUTER_
 fi
 
 # Launch Aider with the architect skill and the target script
-aider $AIDER_FLAGS --no-stream --no-pretty --yes-always --message-file SKILL.md --message "Implement the merge_semantics function in pipeline.py. Test your changes by running 'python pipeline.py $MODEL $INPUT_PATH $OUTPUT_PATH' and checking the resulting SVG structure. Ensure text nodes are actually created." pipeline.py
+aider $AIDER_FLAGS --no-stream --no-pretty --yes-always --message-file SKILL.md --message "Implement the merge_semantics function in merge.py. Test your changes by running 'python pipeline.py $MODEL $INPUT_PATH $OUTPUT_PATH' and checking the resulting SVG structure. Ensure text nodes are actually created." merge.py
+
 
 
 
