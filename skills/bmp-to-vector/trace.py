@@ -345,7 +345,6 @@ def trace_image(
 
         # Build SVG root.
         svg_root = ET.Element(f'{{{SVG_NS}}}svg')
-        svg_root.set('xmlns', SVG_NS)
         svg_root.set('width', str(w))
         svg_root.set('height', str(h))
         svg_root.set('viewBox', f'0 0 {w} {h}')
