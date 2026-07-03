@@ -32,10 +32,11 @@ echo "       Output Path: $OUTPUT_PATH"
 echo "       Aider Flags: $AIDER_FLAGS"
 
 # Launch Aider with standard input redirected to /dev/null to prevent hangs
-aider $AIDER_FLAGS --no-stream --no-pretty --yes-always \
+aider $AIDER_FLAGS --no-stream --no-pretty --yes-always --max-chat-history-tokens 100000 \
   --message-file SKILL.md \
   --message "Implement the merge_semantics function in merge.py. Test your changes by running 'python pipeline.py $MODEL $INPUT_PATH $OUTPUT_PATH' and checking the resulting SVG structure. Ensure text nodes are created." \
   merge.py < /dev/null
+
 
 AIDER_EXIT_CODE=$?
 echo "[INFO] Aider execution completed with exit code: $AIDER_EXIT_CODE"
