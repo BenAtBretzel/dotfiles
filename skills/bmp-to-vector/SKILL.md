@@ -17,3 +17,6 @@ Iteratively improve the `Merge` logic in `pipeline.py`.
 - Avoid deep nesting; exit early.
 - Use Python's built-in `xml.etree.ElementTree`. No external XML libraries.
 - Maintain rigorous error handling and auditability (use structured logging for failures).
+- Use the pre-implemented helper functions `parse_svg_path` and `parse_transform` in `pipeline.py` to extract coordinates and parse SVG transforms.
+- Understand the coordinate transform mapping: for any point `(px, py)` extracted from a path, its absolute canvas coordinates are `x' = px * sx + tx` and `y' = py * sy + ty`, where `tx, ty, sx, sy` are returned by `parse_transform`. Because `sy` in Potrace is negative, this automatically handles the Cartesian-to-pixel Y-axis flip.
+
