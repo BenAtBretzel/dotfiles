@@ -5,6 +5,8 @@ import urllib.request
 import logging
 import os
 import re
+import shutil
+import tempfile
 from typing import Dict, Any
 from merge import merge_semantics
 
@@ -133,11 +135,14 @@ if __name__ == "__main__":
     parser.add_argument("model", help="Ollama VLM model name to use (use 'mock' for offline testing)")
     parser.add_argument("input_path", help="Path to input bitmap (.bmp) file")
     parser.add_argument("output_path", help="Path to output SVG (.svg) file")
-    
+
     args = parser.parse_args()
-    
-    raw_svg = args.input_path.replace(".bmp", "_raw.svg")
-    
-    run_potrace(args.input_path, raw_svg)
-    semantic_data = get_vlm_semantics(args.input_path, args.model)
-    merge_semantics(raw_svg, semantic_data, args.output_path)
+
+    tmpdir = tempfile.mkdtemp(prefix="bmp2vec_")
+    try:
+        raw_svg = os.path.join(tmpdir, "raw.svg")
+        run_potrace(args.input_path, raw_svg)
+        semantic_data = get_vlm_semantics(args.input_path, args.model)
+        merge_semantics(raw_svg, semantic_data, args.output_path)
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
