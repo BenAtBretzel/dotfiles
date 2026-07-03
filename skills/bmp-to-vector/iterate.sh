@@ -13,16 +13,34 @@ fi
 # Determine Aider model configuration based on environment variables
 AIDER_FLAGS=""
 if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ] && [ -z "$GEMINI_API_KEY" ]; then
-    echo "No API keys detected (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.)."
-    echo "Defaulting Aider to run locally with Ollama model: ollama_chat/$MODEL"
+    echo "[INFO] No API keys detected. Running locally via Ollama."
     AIDER_FLAGS="--model ollama_chat/$MODEL"
     if [ -n "$AIDER_EDIT_FORMAT" ]; then
         AIDER_FLAGS="$AIDER_FLAGS --edit-format $AIDER_EDIT_FORMAT"
+    else
+        # Default to whole format for local models to ensure formatting compliance
+        AIDER_FLAGS="$AIDER_FLAGS --edit-format whole"
     fi
+else
+    echo "[INFO] API key detected. Running Aider in cloud mode."
 fi
 
-# Launch Aider with the architect skill and the target script
-aider $AIDER_FLAGS --no-stream --no-pretty --yes-always --message-file SKILL.md --message "Implement the merge_semantics function in merge.py. Test your changes by running 'python pipeline.py $MODEL $INPUT_PATH $OUTPUT_PATH' and checking the resulting SVG structure. Ensure text nodes are actually created." merge.py
+echo "[INFO] Starting Aider iteration..."
+echo "       Model:       $MODEL"
+echo "       Input Path:  $INPUT_PATH"
+echo "       Output Path: $OUTPUT_PATH"
+echo "       Aider Flags: $AIDER_FLAGS"
+
+# Launch Aider with standard input redirected to /dev/null to prevent hangs
+aider $AIDER_FLAGS --no-stream --no-pretty --yes-always \
+  --message-file SKILL.md \
+  --message "Implement the merge_semantics function in merge.py. Test your changes by running 'python pipeline.py $MODEL $INPUT_PATH $OUTPUT_PATH' and checking the resulting SVG structure. Ensure text nodes are created." \
+  merge.py < /dev/null
+
+AIDER_EXIT_CODE=$?
+echo "[INFO] Aider execution completed with exit code: $AIDER_EXIT_CODE"
+exit $AIDER_EXIT_CODE
+
 
 
 
