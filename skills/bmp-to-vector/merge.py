@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import logging
 import re
+import os
 from typing import Dict, Any, List, Tuple
 
 # Register SVG namespace to prevent 'ns0:' prefixing in written SVG output
@@ -108,18 +109,98 @@ def parse_transform(transform_str: str) -> Tuple[float, float, float, float]:
     return tx, ty, sx, sy
 
 def merge_semantics(raw_svg_path: str, semantics: Dict[str, Any], output_path: str) -> None:
-    """
-    TODO for Aider: Implement coordinate intersection and SVG DOM manipulation here.
-    1. Parse raw_svg_path using ET.parse.
-    2. Iterate through semantics['objects'].
-    3. Group Potrace paths that fall within the VLM bounding boxes into semantic <g> tags.
-    4. Replace raw traced text paths with actual SVG <text> nodes based on OCR content.
-    5. Save to output_path.
-    """
+    """Merges VLM semantic annotations with Potrace raw vector paths."""
+    if not os.path.exists(raw_svg_path):
+        raise FileNotFoundError(f"Raw SVG path not found: {raw_svg_path}")
+        
     tree = ET.parse(raw_svg_path)
     root = tree.getroot()
     
-    # Aider will inject iterative logic here
+    ns = {'svg': 'http://www.w3.org/2000/svg'}
     
+    main_g = root.find('.//svg:g', ns)
+    if main_g is None:
+        logging.warning("No transformed group found in raw SVG. Using root.")
+        main_g = root
+        
+    transform_str = main_g.get('transform', '')
+    tx, ty, sx, sy = parse_transform(transform_str)
+    
+    paths = main_g.findall('.//svg:path', ns)
+    objects = semantics.get('objects', [])
+    
+    obj_paths = {i: [] for i in range(len(objects))}
+    text_paths = set()
+    
+    for path in paths:
+        d_attr = path.get('d', '')
+        points = parse_svg_path(d_attr)
+        if not points:
+            continue
+            
+        pixel_x = [pt[0] * sx + tx for pt in points]
+        pixel_y = [pt[1] * sy + ty for pt in points]
+        
+        min_x, max_x = min(pixel_x), max(pixel_x)
+        min_y, max_y = min(pixel_y), max(pixel_y)
+        
+        cx = (min_x + max_x) / 2
+        cy = (min_y + max_y) / 2
+        
+        matched_idx = None
+        for i, obj in enumerate(objects):
+            box = obj.get('box', [])
+            if len(box) == 4:
+                ox1, oy1, ox2, oy2 = box
+                if ox1 <= cx <= ox2 and oy1 <= cy <= oy2:
+                    matched_idx = i
+                    break
+                    
+        if matched_idx is not None:
+            obj = objects[matched_idx]
+            if obj.get('type') == 'text':
+                text_paths.add(path)
+            else:
+                obj_paths[matched_idx].append(path)
+                
+    for path in text_paths:
+        if path in main_g:
+            main_g.remove(path)
+            
+    for i, obj in enumerate(objects):
+        obj_type = obj.get('type')
+        if obj_type == 'text':
+            box = obj.get('box', [])
+            if len(box) == 4:
+                ox1, oy1, ox2, oy2 = box
+                content = obj.get('content', '')
+                
+                font_size = max(10.0, oy2 - oy1)
+                text_elem = ET.Element('{http://www.w3.org/2000/svg}text', {
+                    'x': str(ox1),
+                    'y': str(oy2 - font_size * 0.1),
+                    'font-size': f"{font_size}px",
+                    'font-family': 'sans-serif',
+                    'fill': '#000000'
+                })
+                text_elem.text = content
+                root.append(text_elem)
+        else:
+            matching_paths = obj_paths[i]
+            if matching_paths:
+                group_id = f"vlm-{obj_type}-{i}"
+                g_elem = ET.Element('{http://www.w3.org/2000/svg}g', {
+                    'id': group_id,
+                    'class': obj_type,
+                    'metadata': obj.get('content', '')
+                })
+                
+                for path in matching_paths:
+                    if path in main_g:
+                        main_g.remove(path)
+                    g_elem.append(path)
+                    
+                main_g.append(g_elem)
+                
     tree.write(output_path)
     logging.info(f"Merged SVG saved to: {output_path}")
