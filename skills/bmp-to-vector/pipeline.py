@@ -1,148 +1,173 @@
-import subprocess
-import json
-import base64
-import urllib.request
+"""Top-level orchestrator for the photo-to-vector illustration pipeline.
+
+Provides CLI entry point and programmatic API for single-pass tracing
+(Architecture A) and iterative refinement (Architecture B).
+"""
+
+import argparse
 import logging
 import os
-import re
-import shutil
-import tempfile
-from typing import Dict, Any
-from merge import merge_semantics
+import sys
+
+from trace import trace_image, write_svg, TraceParams
+from render import load_image
+from refine import refine, DEFAULT_INITIAL_PARAMS
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
 
-def _repair_json(text: str) -> str:
-    """Attempts lightweight repairs on malformed JSON from VLM output.
+def run_single_pass(
+    input_path: str,
+    output_path: str,
+    n_colors: int = 16,
+    method: str = "potrace",
+    turdsize: int = 2,
+    alphamax: float = 1.0,
+    opttolerance: float = 0.2,
+    epsilon: float = 2.0,
+    morph_kernel: int = 3,
+) -> str:
+    """Run Architecture A: single-pass color-stratified tracing.
 
-    Handles trailing commas, unescaped control chars, and unbalanced braces/brackets.
+    Returns the output SVG path.
     """
-    # Strip non-printable control characters (keep whitespace)
-    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+    img = load_image(input_path)
 
-    # Remove trailing commas before closing brackets/braces: ,] or ,}
-    text = re.sub(r',\s*([}\]])', r'\1', text)
+    params = TraceParams(
+        n_colors=n_colors,
+        turdsize=turdsize,
+        alphamax=alphamax,
+        opttolerance=opttolerance,
+        method=method,
+        epsilon=epsilon,
+        morph_kernel=morph_kernel,
+    )
 
-    # Balance braces/brackets: count opens vs closes, append missing closers
-    open_braces = text.count('{') - text.count('}')
-    open_brackets = text.count('[') - text.count(']')
-    if open_braces > 0:
-        text += '}' * open_braces
-    if open_brackets > 0:
-        text += ']' * open_brackets
-
-    return text
+    svg = trace_image(img, params)
+    write_svg(svg, output_path)
+    logging.info(f"Single-pass trace complete: {output_path}")
+    return output_path
 
 
-def extract_json_response(response_text: str) -> Dict[str, Any]:
-    """Extracts and parses JSON content from VLM text response.
+def run_iterative(
+    input_path: str,
+    output_path: str,
+    vlm_model: str = "gemma3:4b",
+    llm_model: str = "qwen3.5:4b",
+    grid: int = 4,
+    max_iterations: int = 20,
+    max_retries: int = 3,
+    target_ssim: float = 0.92,
+    n_colors: int = 12,
+    method: str = "potrace",
+) -> dict:
+    """Run Architecture B: iterative convergence with VLM/LLM guidance.
 
-    Handles thinking tags (<think>...</think>), markdown code fences,
-    invisible characters, trailing commas, and unbalanced braces.
+    Returns stats dict with final metrics.
     """
-    text = response_text.strip()
+    initial_params = TraceParams(
+        n_colors=n_colors,
+        turdsize=5,
+        alphamax=1.0,
+        opttolerance=0.3,
+        method=method,
+        epsilon=2.0,
+        morph_kernel=3,
+    )
 
-    # 1. Remove thinking block if present
-    if "<think>" in text:
-        end_think = text.find("</think>")
-        if end_think != -1:
-            text = text[end_think + 8:].strip()
-        else:
-            text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
-
-    # 2. Strip markdown code fences if present
-    code_block_match = re.search(r'```(?:json)?\s*(.*?)\s*```', text, flags=re.DOTALL)
-    if code_block_match:
-        text = code_block_match.group(1).strip()
-
-    # 3. Extract outermost JSON object via brace matching (always applied)
-    start_idx = text.find('{')
-    end_idx = text.rfind('}')
-    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-        text = text[start_idx:end_idx + 1].strip()
-
-    if not text:
-        raise ValueError(f"No JSON content found in VLM response text. Raw response was: {response_text!r}")
-
-    # 4. Try parsing as-is first, then attempt repair
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-
-    repaired = _repair_json(text)
-    try:
-        return json.loads(repaired)
-    except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse cleaned JSON: {text!r}. Raw response was: {response_text!r}")
-        raise ValueError(f"Cleaned VLM response is not valid JSON: {e}") from e
+    return refine(
+        source_path=input_path,
+        output_path=output_path,
+        vlm_model=vlm_model,
+        llm_model=llm_model,
+        grid=grid,
+        max_iterations=max_iterations,
+        max_retries_per_region=max_retries,
+        target_ssim=target_ssim,
+        initial_params=initial_params,
+    )
 
 
-def run_potrace(input_bmp: str, output_svg: str) -> None:
-    """Generates raw SVG paths from bitmap."""
-    cmd = ["potrace", input_bmp, "-s", "-o", output_svg]
-    subprocess.run(cmd, check=True)
-    logging.info(f"Potrace generated raw SVG: {output_svg}")
+def main():
+    """CLI entry point."""
+    parser = argparse.ArgumentParser(
+        description="Photo-to-vector illustration pipeline."
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-def get_vlm_semantics(image_path: str, model: str) -> Dict[str, Any]:
-    """Retrieves semantic bounding boxes and OCR from local VLM or returns mock data."""
-    if model == "mock":
-        logging.warning("VLM model set to 'mock'. Returning mock semantic data for testing.")
-        return {
-            "objects": [
-                {
-                    "type": "container",
-                    "box": [20, 20, 180, 180],
-                    "content": "main square"
-                },
-                {
-                    "type": "text",
-                    "box": [50, 80, 150, 120],
-                    "content": "HELLO"
-                }
-            ]
-        }
+    # Single-pass subcommand
+    sp = subparsers.add_parser(
+        "trace",
+        help="Single-pass color-stratified tracing (Architecture A).",
+    )
+    sp.add_argument("input", help="Path to input image (BMP, PNG, JPG).")
+    sp.add_argument("output", help="Path to output SVG file.")
+    sp.add_argument("-n", "--n-colors", type=int, default=16,
+                    help="Number of color clusters (default: 16).")
+    sp.add_argument("-m", "--method", choices=["potrace", "contours"],
+                    default="potrace", help="Tracing method (default: potrace).")
+    sp.add_argument("-t", "--turdsize", type=int, default=2,
+                    help="Noise suppression (default: 2).")
+    sp.add_argument("-a", "--alphamax", type=float, default=1.0,
+                    help="Corner threshold (default: 1.0).")
+    sp.add_argument("-O", "--opttolerance", type=float, default=0.2,
+                    help="Curve optimization tolerance (default: 0.2).")
+    sp.add_argument("-e", "--epsilon", type=float, default=2.0,
+                    help="Path simplification epsilon (default: 2.0).")
+    sp.add_argument("-k", "--morph-kernel", type=int, default=3,
+                    help="Morphological kernel size, 0 to disable (default: 3).")
 
-    with open(image_path, "rb") as f:
-        img_b64 = base64.b64encode(f.read()).decode("utf-8")
-        
-    prompt = """
-    Analyze this image and output ONLY valid JSON.
-    Format: {"objects": [{"type": "text|icon|container", "box": [x1, y1, x2, y2], "content": "..."}]}
-    Note: [x1, y1, x2, y2] are absolute pixel coordinates corresponding to the input image dimensions (0 to image_width, 0 to image_height).
-    """
-    
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "images": [img_b64],
-        "stream": False
-    }
-    
-    logging.info(f"Querying local VLM via Ollama (model: {model}, URL: {OLLAMA_URL}). This may take a few seconds...")
-    req = urllib.request.Request(OLLAMA_URL, data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req) as response:
-        result = json.loads(response.read().decode())
-        logging.info("VLM successfully generated semantic map.")
-        return extract_json_response(result["response"])
-
-
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Hybrid semantic bitmap-to-vector pipeline.")
-    parser.add_argument("model", help="Ollama VLM model name to use (use 'mock' for offline testing)")
-    parser.add_argument("input_path", help="Path to input bitmap (.bmp) file")
-    parser.add_argument("output_path", help="Path to output SVG (.svg) file")
+    # Iterative refinement subcommand
+    rp = subparsers.add_parser(
+        "refine",
+        help="Iterative convergence refinement (Architecture B).",
+    )
+    rp.add_argument("input", help="Path to input image (BMP, PNG, JPG).")
+    rp.add_argument("output", help="Path to output SVG file.")
+    rp.add_argument("--vlm-model", default="gemma3:4b",
+                    help="Ollama VLM model for diagnosis (default: gemma3:4b).")
+    rp.add_argument("--llm-model", default="qwen3.5:4b",
+                    help="Ollama LLM model for parameter prescription (default: qwen3.5:4b).")
+    rp.add_argument("--grid", type=int, default=4,
+                    help="SSIM grid size (default: 4).")
+    rp.add_argument("--max-iterations", type=int, default=20,
+                    help="Maximum refinement iterations (default: 20).")
+    rp.add_argument("--max-retries", type=int, default=3,
+                    help="Max retries per region before marking converged (default: 3).")
+    rp.add_argument("--target-ssim", type=float, default=0.92,
+                    help="Target global SSIM for convergence (default: 0.92).")
+    rp.add_argument("-n", "--n-colors", type=int, default=12,
+                    help="Initial number of color clusters (default: 12).")
+    rp.add_argument("-m", "--method", choices=["potrace", "contours"],
+                    default="potrace", help="Initial tracing method (default: potrace).")
 
     args = parser.parse_args()
 
-    tmpdir = tempfile.mkdtemp(prefix="bmp2vec_")
-    try:
-        raw_svg = os.path.join(tmpdir, "raw.svg")
-        run_potrace(args.input_path, raw_svg)
-        semantic_data = get_vlm_semantics(args.input_path, args.model)
-        merge_semantics(raw_svg, semantic_data, args.output_path)
-    finally:
-        shutil.rmtree(tmpdir, ignore_errors=True)
+    if args.command == "trace":
+        run_single_pass(
+            args.input, args.output,
+            n_colors=args.n_colors,
+            method=args.method,
+            turdsize=args.turdsize,
+            alphamax=args.alphamax,
+            opttolerance=args.opttolerance,
+            epsilon=args.epsilon,
+            morph_kernel=args.morph_kernel,
+        )
+    elif args.command == "refine":
+        stats = run_iterative(
+            args.input, args.output,
+            vlm_model=args.vlm_model,
+            llm_model=args.llm_model,
+            grid=args.grid,
+            max_iterations=args.max_iterations,
+            max_retries=args.max_retries,
+            target_ssim=args.target_ssim,
+            n_colors=args.n_colors,
+            method=args.method,
+        )
+        logging.info(f"Final stats: {stats}")
+
+
+if __name__ == "__main__":
+    main()
