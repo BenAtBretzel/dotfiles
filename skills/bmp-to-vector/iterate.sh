@@ -14,12 +14,16 @@ fi
 AIDER_FLAGS=""
 if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ] && [ -z "$OPENROUTER_API_KEY" ] && [ -z "$GEMINI_API_KEY" ]; then
     echo "No API keys detected (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.)."
-    echo "Defaulting Aider to run locally with Ollama model: ollama/$MODEL"
-    AIDER_FLAGS="--model ollama/$MODEL --edit-format whole"
+    echo "Defaulting Aider to run locally with Ollama model: ollama_chat/$MODEL"
+    AIDER_FLAGS="--model ollama_chat/$MODEL"
+    if [ -n "$AIDER_EDIT_FORMAT" ]; then
+        AIDER_FLAGS="$AIDER_FLAGS --edit-format $AIDER_EDIT_FORMAT"
+    fi
 fi
 
 # Launch Aider with the architect skill and the target script
 aider $AIDER_FLAGS --no-stream --no-pretty --yes-always --message-file SKILL.md --message "Implement the merge_semantics function in pipeline.py. Test your changes by running 'python pipeline.py $MODEL $INPUT_PATH $OUTPUT_PATH' and checking the resulting SVG structure. Ensure text nodes are actually created." pipeline.py
+
 
 
 
