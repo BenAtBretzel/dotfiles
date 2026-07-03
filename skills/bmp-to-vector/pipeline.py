@@ -4,12 +4,16 @@ import base64
 import urllib.request
 import xml.etree.ElementTree as ET
 import logging
+import os
 from typing import Dict, Any
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-VLM_MODEL = "qwen3-vl:2b" # Swap to minicpm-v4.6:1b for extreme edge
+
+VLM_MODEL = os.environ.get("VLM_MODEL")
+if not VLM_MODEL:
+    raise ValueError("Environment variable VLM_MODEL is required but not set")
 
 def run_potrace(input_bmp: str, output_svg: str) -> None:
     """Generates raw SVG paths from bitmap."""
