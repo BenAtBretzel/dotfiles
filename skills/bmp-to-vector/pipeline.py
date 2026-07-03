@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 
-from trace import trace_image, write_svg, TraceParams
+from trace import trace_image, write_svg, TraceParams, extract_n_colors_from_svg
 from render import load_image
 from refine import refine, DEFAULT_INITIAL_PARAMS
 
@@ -139,8 +139,8 @@ def main():
                     help="Max retries per region before marking converged (default: 3).")
     rp.add_argument("--target-ssim", type=float, default=0.92,
                     help="Target global SSIM for convergence (default: 0.92).")
-    rp.add_argument("-n", "--n-colors", type=int, default=12,
-                    help="Initial number of color clusters (default: 12).")
+    rp.add_argument("-n", "--n-colors", type=int, default=None,
+                    help="Initial number of color clusters (default: 12, or auto-detected from output SVG).")
     rp.add_argument("-m", "--method", choices=["potrace", "contours"],
                     default="potrace", help="Initial tracing method (default: potrace).")
 
@@ -158,6 +158,17 @@ def main():
             morph_kernel=args.morph_kernel,
         )
     elif args.command == "refine":
+        n_colors = args.n_colors
+        if n_colors is None:
+            detected = extract_n_colors_from_svg(args.output)
+            if detected is not None:
+                logging.info(
+                    f"Auto-detected {detected} colors from existing SVG: {args.output}"
+                )
+                n_colors = detected
+            else:
+                n_colors = 12
+
         stats = run_iterative(
             args.input, args.output,
             vlm_model=args.vlm_model,
@@ -166,7 +177,7 @@ def main():
             max_iterations=args.max_iterations,
             max_retries=args.max_retries,
             target_ssim=args.target_ssim,
-            n_colors=args.n_colors,
+            n_colors=n_colors,
             method=args.method,
         )
         logging.info(f"Final stats: {stats}")

@@ -413,6 +413,37 @@ def write_svg(svg_element: ET.Element, output_path: str) -> str:
     return output_path
 
 
+def extract_n_colors_from_svg(svg_path: str) -> Optional[int]:
+    """Extract the number of unique colors from an existing SVG file.
+
+    Args:
+        svg_path: Path to the SVG file.
+
+    Returns:
+        The number of unique colors found, or None if the file does not exist or
+        cannot be parsed.
+    """
+    if not svg_path:
+        return None
+    if not os.path.isfile(svg_path):
+        return None
+
+    try:
+        tree = ET.parse(svg_path)
+        root = tree.getroot()
+        colors = set()
+        for elem in root.iter():
+            fill = elem.get('fill')
+            if fill and fill.startswith('#'):
+                colors.add(fill.lower())
+        if colors:
+            return len(colors)
+    except Exception as exc:
+        logger.warning("Failed to parse SVG to extract colors: %s", exc)
+    return None
+
+
+
 def patch_region(
     svg_path: str,
     region_svg: ET.Element,
