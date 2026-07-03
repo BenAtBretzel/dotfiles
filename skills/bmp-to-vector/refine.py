@@ -18,7 +18,10 @@ from trace import trace_image, write_svg, patch_region, TraceParams
 from diagnose import diagnose_region, tiebreak
 from prescribe import prescribe_params
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s'
+)
 
 
 DEFAULT_INITIAL_PARAMS = TraceParams(

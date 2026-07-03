@@ -243,6 +243,7 @@ def prescribe_params(
     logger.info(
         "Prescribing params: ssim=%.4f model=%s", current_ssim, model
     )
+    logger.info("Querying Ollama LLM for parameter suggestions...")
 
     try:
         raw = _ollama_generate_text(model, prompt)

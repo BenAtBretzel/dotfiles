@@ -138,6 +138,7 @@ def diagnose_region(
         "Diagnosing region: source=%s render=%s model=%s",
         source_crop_path, render_crop_path, model,
     )
+    logger.info("Querying Ollama VLM for regional diagnosis...")
     raw = _ollama_generate(model, prompt, [img1_b64, img2_b64])
     return _strip_think_tags(raw)
 

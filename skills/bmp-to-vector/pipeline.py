@@ -13,7 +13,10 @@ from trace import trace_image, write_svg, TraceParams
 from render import load_image
 from refine import refine, DEFAULT_INITIAL_PARAMS
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s'
+)
 
 
 def run_single_pass(
