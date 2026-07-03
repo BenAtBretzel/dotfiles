@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 ET.register_namespace('', 'http://www.w3.org/2000/svg')
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-VLM_MODEL = os.environ.get("VLM_MODEL")
 
 def parse_svg_path(d_string: str) -> List[Tuple[float, float]]:
     """Parses SVG path coordinates from a 'd' attribute string.
@@ -123,10 +122,10 @@ def run_potrace(input_bmp: str, output_svg: str) -> None:
     subprocess.run(cmd, check=True)
     logging.info(f"Potrace generated raw SVG: {output_svg}")
 
-def get_vlm_semantics(image_path: str) -> Dict[str, Any]:
+def get_vlm_semantics(image_path: str, model: str) -> Dict[str, Any]:
     """Retrieves semantic bounding boxes and OCR from local VLM or returns mock data."""
-    if not VLM_MODEL:
-        logging.warning("VLM_MODEL environment variable not set. Returning mock semantic data for testing.")
+    if model == "mock":
+        logging.warning("VLM model set to 'mock'. Returning mock semantic data for testing.")
         return {
             "objects": [
                 {
@@ -152,7 +151,7 @@ def get_vlm_semantics(image_path: str) -> Dict[str, Any]:
     """
     
     payload = {
-        "model": VLM_MODEL,
+        "model": model,
         "prompt": prompt,
         "images": [img_b64],
         "format": "json",
@@ -183,14 +182,16 @@ def merge_semantics(raw_svg_path: str, semantics: Dict[str, Any], output_path: s
     logging.info(f"Merged SVG saved to: {output_path}")
 
 if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 3:
-        print("Usage: python pipeline.py <input.bmp> <final.svg>")
-        sys.exit(1)
-        
-    in_file, out_file = sys.argv[1], sys.argv[2]
-    raw_svg = in_file.replace(".bmp", "_raw.svg")
+    import argparse
+    parser = argparse.ArgumentParser(description="Hybrid semantic bitmap-to-vector pipeline.")
+    parser.add_argument("model", help="Ollama VLM model name to use (use 'mock' for offline testing)")
+    parser.add_argument("input_path", help="Path to input bitmap (.bmp) file")
+    parser.add_argument("output_path", help="Path to output SVG (.svg) file")
     
-    run_potrace(in_file, raw_svg)
-    semantic_data = get_vlm_semantics(in_file)
-    merge_semantics(raw_svg, semantic_data, out_file)
+    args = parser.parse_args()
+    
+    raw_svg = args.input_path.replace(".bmp", "_raw.svg")
+    
+    run_potrace(args.input_path, raw_svg)
+    semantic_data = get_vlm_semantics(args.input_path, args.model)
+    merge_semantics(raw_svg, semantic_data, args.output_path)
