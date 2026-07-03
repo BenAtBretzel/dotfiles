@@ -8,28 +8,28 @@ ET.register_namespace('', 'http://www.w3.org/2000/svg')
 
 def parse_svg_path(d_string: str) -> List[Tuple[float, float]]:
     """Parses SVG path coordinates from a 'd' attribute string.
-    
+
     Supports move (M/m), line (L/l), cubic bezier (C/c), and close (Z/z) commands.
     """
     if not d_string:
         return []
-        
+
     tokens = re.findall(r'[a-zA-Z]|[-+]?\d+(?:\.\d+)?', d_string)
     if not tokens:
         return []
-        
+
     points: List[Tuple[float, float]] = []
     curr_x, curr_y = 0.0, 0.0
     start_x, start_y = 0.0, 0.0
     cmd = ''
-    
+
     i = 0
     while i < len(tokens):
         token = tokens[i]
         if token.isalpha():
             cmd = token
             i += 1
-            
+
         cmd_lower = cmd.lower()
         if cmd_lower in ('m', 'l'):
             if i + 2 > len(tokens):
@@ -75,20 +75,20 @@ def parse_svg_path(d_string: str) -> List[Tuple[float, float]]:
             points.append((curr_x, curr_y))
         else:
             i += 1
-            
+
     return points
 
 def parse_transform(transform_str: str) -> Tuple[float, float, float, float]:
     """Parses SVG transform translate and scale parameters.
-    
+
     Returns (tx, ty, sx, sy). Defaults to (0.0, 0.0, 1.0, 1.0).
     """
     tx, ty = 0.0, 0.0
     sx, sy = 1.0, 1.0
-    
+
     if not transform_str:
         return tx, ty, sx, sy
-        
+
     translate_match = re.search(r'translate\(([-+]?\d+(?:\.\d+)?)\s*,\s*([-+]?\d+(?:\.\d+)?)\)', transform_str)
     if translate_match:
         try:
@@ -96,7 +96,7 @@ def parse_transform(transform_str: str) -> Tuple[float, float, float, float]:
             ty = float(translate_match.group(2))
         except ValueError as e:
             raise ValueError(f"Invalid translate values in transform: {transform_str}") from e
-            
+
     scale_match = re.search(r'scale\(([-+]?\d+(?:\.\d+)?)\s*,\s*([-+]?\d+(?:\.\d+)?)\)', transform_str)
     if scale_match:
         try:
@@ -104,7 +104,7 @@ def parse_transform(transform_str: str) -> Tuple[float, float, float, float]:
             sy = float(scale_match.group(2))
         except ValueError as e:
             raise ValueError(f"Invalid scale values in transform: {transform_str}") from e
-            
+
     return tx, ty, sx, sy
 
 def merge_semantics(raw_svg_path: str, semantics: Dict[str, Any], output_path: str) -> None:
