@@ -53,11 +53,13 @@ def get_vlm_semantics(image_path: str, model: str) -> Dict[str, Any]:
         "stream": False
     }
     
+    logging.info(f"Querying local VLM via Ollama (model: {model}, URL: {OLLAMA_URL}). This may take a few seconds...")
     req = urllib.request.Request(OLLAMA_URL, data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json'})
     with urllib.request.urlopen(req) as response:
         result = json.loads(response.read().decode())
-        logging.info("VLM generated semantic map.")
+        logging.info("VLM successfully generated semantic map.")
         return json.loads(result["response"])
+
 
 if __name__ == "__main__":
     import argparse

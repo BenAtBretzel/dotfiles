@@ -129,6 +129,8 @@ def merge_semantics(raw_svg_path: str, semantics: Dict[str, Any], output_path: s
     paths = main_g.findall('.//svg:path', ns)
     objects = semantics.get('objects', [])
     
+    logging.info(f"Merging semantic annotations: parsed {len(paths)} raw SVG paths, matching against {len(objects)} semantic VLM objects...")
+    
     obj_paths = {i: [] for i in range(len(objects))}
     text_paths = set()
     
@@ -202,5 +204,10 @@ def merge_semantics(raw_svg_path: str, semantics: Dict[str, Any], output_path: s
                     
                 main_g.append(g_elem)
                 
+    grouped_count = sum(len(matching_paths) for matching_paths in obj_paths.values())
+    replaced_count = len(text_paths)
+    text_count = len([o for o in objects if o.get('type') == 'text'])
+    logging.info(f"Grouping complete: grouped {grouped_count} paths into semantic containers/icons. Replaced {replaced_count} traced paths with {text_count} clean text node(s).")
+
     tree.write(output_path)
     logging.info(f"Merged SVG saved to: {output_path}")
