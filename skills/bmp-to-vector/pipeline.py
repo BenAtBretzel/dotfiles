@@ -39,12 +39,12 @@ def extract_json_response(response_text: str) -> Dict[str, Any]:
             text = text[start_idx:end_idx + 1].strip()
             
     if not text:
-        raise ValueError("No JSON content found in VLM response text.")
+        raise ValueError(f"No JSON content found in VLM response text. Raw response was: {response_text!r}")
         
     try:
         return json.loads(text)
     except json.JSONDecodeError as e:
-        logging.error(f"Failed to parse cleaned JSON: {text!r}")
+        logging.error(f"Failed to parse cleaned JSON: {text!r}. Raw response was: {response_text!r}")
         raise ValueError(f"Cleaned VLM response is not valid JSON: {e}") from e
 
 
@@ -86,7 +86,6 @@ def get_vlm_semantics(image_path: str, model: str) -> Dict[str, Any]:
         "model": model,
         "prompt": prompt,
         "images": [img_b64],
-        "format": "json",
         "stream": False
     }
     
