@@ -117,27 +117,27 @@ def refine(
 
         for iteration in range(max_iterations):
             stats["iterations"] = iteration + 1
+            iter_prefix = f"Iteration {iteration + 1}/{max_iterations}"
 
             # Compute SSIM grid
             scores = ssim_grid(source_img, render_img, grid=grid)
             r, c, worst_score = worst_region(scores)
 
             logging.info(
-                f"Iteration {iteration + 1}/{max_iterations}: "
-                f"global_ssim={current_global_ssim:.4f}, "
+                f"{iter_prefix}: global_ssim={current_global_ssim:.4f}, "
                 f"worst_region=({r},{c}) ssim={worst_score:.4f}"
             )
 
             # Check convergence conditions
             if current_global_ssim >= target_ssim:
                 logging.info(
-                    f"Target SSIM {target_ssim} reached. Converged."
+                    f"{iter_prefix}: Target SSIM {target_ssim} reached. Converged."
                 )
                 break
 
             if worst_score >= region_ssim_floor:
                 logging.info(
-                    f"All regions above SSIM floor {region_ssim_floor}. Converged."
+                    f"{iter_prefix}: All regions above SSIM floor {region_ssim_floor}. Converged."
                 )
                 break
 
@@ -154,7 +154,7 @@ def refine(
                         found = True
                         break
                 if not found:
-                    logging.info("All regions converged.")
+                    logging.info(f"{iter_prefix}: All regions converged.")
                     break
 
             # Get or initialize region state
@@ -168,7 +168,7 @@ def refine(
                 converged_regions.add(region_key)
                 stats["regions_converged"] = len(converged_regions)
                 logging.info(
-                    f"Region ({r},{c}) retry budget exhausted. Marking converged."
+                    f"{iter_prefix}: Region ({r},{c}) retry budget exhausted. Marking converged."
                 )
                 continue
 
@@ -182,21 +182,21 @@ def refine(
             save_image(render_crop, render_crop_path)
 
             # VLM diagnosis (GPU)
-            logging.info(f"VLM diagnosing region ({r},{c})...")
+            logging.info(f"{iter_prefix}: VLM diagnosing region ({r},{c})...")
             try:
                 diagnosis = diagnose_region(
                     source_crop_path, render_crop_path, model=vlm_model
                 )
-                logging.info(f"VLM diagnosis: {diagnosis[:200]}...")
+                logging.info(f"{iter_prefix}: VLM diagnosis: {diagnosis[:200]}...")
             except (RuntimeError, Exception) as e:
-                logging.warning(f"VLM diagnosis failed: {e}. Skipping iteration.")
+                logging.warning(f"{iter_prefix}: VLM diagnosis failed: {e}. Skipping iteration.")
                 region_retries[region_key] += 1
                 consecutive_rejections += 1
                 continue
 
             # LLM parameter prescription (GPU)
             current_params = region_params[region_key]
-            logging.info(f"LLM prescribing parameters for region ({r},{c})...")
+            logging.info(f"{iter_prefix}: LLM prescribing parameters for region ({r},{c})...")
             try:
                 new_params_dict = prescribe_params(
                     diagnosis=diagnosis,
@@ -206,13 +206,13 @@ def refine(
                 )
                 new_params = TraceParams.from_dict(new_params_dict)
             except (RuntimeError, Exception) as e:
-                logging.warning(f"LLM prescription failed: {e}. Skipping iteration.")
+                logging.warning(f"{iter_prefix}: LLM prescription failed: {e}. Skipping iteration.")
                 region_retries[region_key] += 1
                 consecutive_rejections += 1
                 continue
 
             logging.info(
-                f"Prescribed params: n_colors={new_params.n_colors}, "
+                f"{iter_prefix}: Prescribed params: n_colors={new_params.n_colors}, "
                 f"method={new_params.method}, turdsize={new_params.turdsize}"
             )
 
@@ -254,13 +254,13 @@ def refine(
                 stats["accepted"] += 1
                 consecutive_rejections = 0
                 logging.info(
-                    f"ACCEPTED: global_ssim {current_global_ssim:.4f} "
+                    f"{iter_prefix}: ACCEPTED: global_ssim {current_global_ssim:.4f} "
                     f"(+{new_global_ssim - current_global_ssim + GATE_EPSILON:.4f}), "
                     f"region_ssim {new_region_ssim:.4f}"
                 )
             elif is_marginal(current_global_ssim, new_global_ssim):
                 # Marginal — try VLM tiebreaker
-                logging.info("Marginal improvement. Invoking VLM tiebreaker...")
+                logging.info(f"{iter_prefix}: Marginal improvement. Invoking VLM tiebreaker...")
                 before_render_path = os.path.join(work_dir, "before_render.png")
                 save_image(
                     crop_region(render_img, r, c, grid)[0], before_render_path
@@ -284,26 +284,26 @@ def refine(
                     checkpoints.save(current_svg)
                     stats["accepted"] += 1
                     consecutive_rejections = 0
-                    logging.info("Tiebreaker chose B (new). ACCEPTED.")
+                    logging.info(f"{iter_prefix}: Tiebreaker chose B (new). ACCEPTED.")
                 else:
                     region_retries[region_key] += 1
                     stats["rejected"] += 1
                     consecutive_rejections += 1
-                    logging.info("Tiebreaker chose A (current). REJECTED.")
+                    logging.info(f"{iter_prefix}: Tiebreaker chose A (current). REJECTED.")
             else:
                 # REJECT
                 region_retries[region_key] += 1
                 stats["rejected"] += 1
                 consecutive_rejections += 1
                 logging.info(
-                    f"REJECTED: global_ssim would be {new_global_ssim:.4f} "
+                    f"{iter_prefix}: REJECTED: global_ssim would be {new_global_ssim:.4f} "
                     f"(delta={new_global_ssim - current_global_ssim:.4f})"
                 )
 
             # Check for stall
             if consecutive_rejections >= max_retries_per_region * 2:
                 logging.info(
-                    f"{consecutive_rejections} consecutive rejections. "
+                    f"{iter_prefix}: {consecutive_rejections} consecutive rejections. "
                     f"Pipeline likely converged."
                 )
                 break
