@@ -12,13 +12,36 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
+def _repair_json(text: str) -> str:
+    """Attempts lightweight repairs on malformed JSON from VLM output.
+
+    Handles trailing commas, unescaped control chars, and unbalanced braces/brackets.
+    """
+    # Strip non-printable control characters (keep whitespace)
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+
+    # Remove trailing commas before closing brackets/braces: ,] or ,}
+    text = re.sub(r',\s*([}\]])', r'\1', text)
+
+    # Balance braces/brackets: count opens vs closes, append missing closers
+    open_braces = text.count('{') - text.count('}')
+    open_brackets = text.count('[') - text.count(']')
+    if open_braces > 0:
+        text += '}' * open_braces
+    if open_brackets > 0:
+        text += ']' * open_brackets
+
+    return text
+
+
 def extract_json_response(response_text: str) -> Dict[str, Any]:
     """Extracts and parses JSON content from VLM text response.
-    
-    Handles thinking tags (<think>...</think>) and markdown code fences.
+
+    Handles thinking tags (<think>...</think>), markdown code fences,
+    invisible characters, trailing commas, and unbalanced braces.
     """
     text = response_text.strip()
-    
+
     # 1. Remove thinking block if present
     if "<think>" in text:
         end_think = text.find("</think>")
@@ -26,23 +49,30 @@ def extract_json_response(response_text: str) -> Dict[str, Any]:
             text = text[end_think + 8:].strip()
         else:
             text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
-            
-    # 2. Extract content inside markdown code block if present
+
+    # 2. Strip markdown code fences if present
     code_block_match = re.search(r'```(?:json)?\s*(.*?)\s*```', text, flags=re.DOTALL)
     if code_block_match:
         text = code_block_match.group(1).strip()
-    else:
-        # 3. Find first '{' and last '}'
-        start_idx = text.find('{')
-        end_idx = text.rfind('}')
-        if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-            text = text[start_idx:end_idx + 1].strip()
-            
+
+    # 3. Extract outermost JSON object via brace matching (always applied)
+    start_idx = text.find('{')
+    end_idx = text.rfind('}')
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        text = text[start_idx:end_idx + 1].strip()
+
     if not text:
         raise ValueError(f"No JSON content found in VLM response text. Raw response was: {response_text!r}")
-        
+
+    # 4. Try parsing as-is first, then attempt repair
     try:
         return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    repaired = _repair_json(text)
+    try:
+        return json.loads(repaired)
     except json.JSONDecodeError as e:
         logging.error(f"Failed to parse cleaned JSON: {text!r}. Raw response was: {response_text!r}")
         raise ValueError(f"Cleaned VLM response is not valid JSON: {e}") from e
