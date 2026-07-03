@@ -5,6 +5,7 @@ import urllib.request
 import logging
 import os
 from typing import Dict, Any, List, Tuple
+import re  # Import the 're' module
 
 // Register SVG namespace to prevent 'ns0:' prefixing in written SVG output
 ET.register_namespace('', 'http://www.w3.org/2000/svg')
@@ -41,7 +42,7 @@ def parse_svg_path(d_string: str) -> List[Tuple[float, float]]:
                 x = float(tokens[i])
                 y = float(tokens[i+1])
             } catch (e) {
-                throw new ValueError(`Invalid numeric value in path coordinates: ${tokens[i]}, ${tokens[i+1]}`) from e
+                raise ValueError(f"Invalid numeric value in path coordinates: {tokens[i]}, {tokens[i+1]}") from e
             }
             i += 2
             if cmd.isupper():
@@ -61,7 +62,7 @@ def parse_svg_path(d_string: str) -> List[Tuple[float, float]]:
                 x2, y2 = float(tokens[i+2]), float(tokens[i+3])
                 x3, y3 = float(tokens[i+4]), float(tokens[i+5])
             } catch (e) {
-                throw new ValueError(`Invalid numeric value in path cubic coordinates: ${tokens[i]:i+6]}`) from e
+                raise ValueError(f"Invalid numeric value in path cubic coordinates: {tokens[i]:i+6]}") from e
             }
             i += 6
             if cmd.isupper():
