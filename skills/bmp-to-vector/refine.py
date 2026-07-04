@@ -10,6 +10,8 @@ import tempfile
 import shutil
 from typing import Dict, Any, Optional
 from dataclasses import asdict
+from collections import Counter
+import numpy as np
 
 from quality import compute_ssim, ssim_grid, worst_region, accept_change, is_marginal
 from quality import CheckpointManager, GATE_EPSILON
@@ -33,6 +35,21 @@ DEFAULT_INITIAL_PARAMS = TraceParams(
     epsilon=2.0,
     morph_kernel=3,
 )
+
+
+def get_background_hex(img: np.ndarray) -> str:
+    """Determine the background hex color from the corners of the image."""
+    corners = [
+        img[0, 0],          # top-left
+        img[0, -1],         # top-right
+        img[-1, 0],         # bottom-left
+        img[-1, -1]         # bottom-right
+    ]
+    hex_colors = []
+    for c in corners:
+        b, g, r = int(c[0]), int(c[1]), int(c[2])
+        hex_colors.append(f"#{r:02x}{g:02x}{b:02x}")
+    return Counter(hex_colors).most_common(1)[0][0]
 
 
 def refine(
@@ -86,6 +103,8 @@ def refine(
     try:
         source_img = load_image(source_path)
         h, w = source_img.shape[:2]
+        bg_hex = get_background_hex(source_img)
+        logging.info(f"Detected image background color: {bg_hex}")
 
         # Phase 1: Initial coarse trace
         logging.info("Phase 1: Initial coarse trace...")
@@ -98,13 +117,8 @@ def refine(
 
         # Render and compute baseline SSIM
         render_path = os.path.join(work_dir, "render.png")
-        render_svg(current_svg, render_path, density=render_density)
+        render_svg(current_svg, render_path, width=w, height=h, background=bg_hex)
         render_img = load_image(render_path)
-
-        # Resize render to match source if dimensions differ (magick may change size)
-        if render_img.shape[:2] != source_img.shape[:2]:
-            import cv2
-            render_img = cv2.resize(render_img, (w, h))
 
         current_global_ssim = compute_ssim(source_img, render_img)
         checkpoints.save(current_svg)
@@ -229,12 +243,8 @@ def refine(
 
             # Render candidate and compute new SSIM
             candidate_render_path = os.path.join(work_dir, "candidate_render.png")
-            render_svg(candidate_svg, candidate_render_path, density=render_density)
+            render_svg(candidate_svg, candidate_render_path, width=w, height=h, background=bg_hex)
             candidate_render = load_image(candidate_render_path)
-
-            if candidate_render.shape[:2] != source_img.shape[:2]:
-                import cv2
-                candidate_render = cv2.resize(candidate_render, (w, h))
 
             new_global_ssim = compute_ssim(source_img, candidate_render)
             new_region_crop, _, _, _, _ = crop_region(candidate_render, r, c, grid)

@@ -140,8 +140,8 @@ def accept_change(
 ) -> bool:
     """Decide whether to accept a proposed SVG change.
 
-    Accepts only when BOTH global and region SSIM have improved by more
-    than ``GATE_EPSILON``.
+    Accepts when the local region SSIM has improved by more than ``GATE_EPSILON``
+    and the global SSIM has not regressed (allowing a tiny numerical tolerance of 0.0001).
 
     Args:
         current_global: Current global SSIM.
@@ -152,9 +152,9 @@ def accept_change(
     Returns:
         True if the change should be accepted.
     """
-    global_improved = (new_global - current_global) > GATE_EPSILON
     region_improved = (new_region - current_region) > GATE_EPSILON
-    return global_improved and region_improved
+    global_not_regressed = (new_global - current_global) > -0.0001
+    return region_improved and global_not_regressed
 
 
 def is_marginal(current_global: float, new_global: float) -> bool:

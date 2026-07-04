@@ -15,10 +15,10 @@ OLLAMA_URL = 'http://localhost:11434/api/generate'
 
 # Valid ranges for each parameter: (min, max, type)
 _PARAM_RANGES = {
-    "n_colors": (4, 64, int),
-    "turdsize": (0, 10, int),
+    "n_colors": (4, 256, int),
+    "turdsize": (0, 15, int),
     "method": (None, None, str),
-    "epsilon": (0.5, 5.0, float),
+    "epsilon": (0.1, 5.0, float),
     "alphamax": (0.0, 1.34, float),
     "opttolerance": (0.0, 1.0, float),
     "morph_kernel": (0, 7, int),
@@ -221,22 +221,34 @@ def prescribe_params(
 
     prompt = (
         "You are optimizing parameters for a bitmap-to-vector tracing "
-        "pipeline.\n\n"
+        "pipeline to make the vector render match the original photograph as closely as possible.\n\n"
         f"Current parameters: {json.dumps(current_params)}\n"
         f"Current regional SSIM score: {current_ssim:.4f} "
         "(1.0 = perfect match)\n\n"
         "Visual diagnosis of the current output:\n"
         f"{diagnosis}\n\n"
+        "Guidelines for choosing parameters:\n"
+        "1. If the diagnosis mentions 'loses detail', 'missing elements', 'blurry', 'merged regions', or 'simplified colors':\n"
+        "   - Increase 'n_colors' (up to 256) to capture more colors/gradients.\n"
+        "   - Decrease 'turdsize' (down to 0) to preserve smaller detail elements.\n"
+        "   - Decrease 'epsilon' (down to 0.1) for tighter contour approximation.\n"
+        "   - Decrease 'morph_kernel' (down to 0) to disable/reduce morphological smoothing.\n"
+        "2. If the diagnosis mentions 'wrong colors' or 'flat shapes':\n"
+        "   - Increase 'n_colors' significantly.\n"
+        "3. If the diagnosis mentions 'jagged/blocky' or 'rough edges':\n"
+        "   - Set 'method' to 'potrace' and adjust 'alphamax' (0.0-1.34) and 'opttolerance' (0.0-1.0).\n"
+        "4. If the diagnosis mentions 'misaligned shapes' or 'distorted lines':\n"
+        "   - Decrease 'epsilon' and 'morph_kernel'.\n"
+        "5. If the diagnosis mentions 'speckles', 'noise', or 'dirt':\n"
+        "   - Increase 'turdsize' and 'morph_kernel' slightly.\n\n"
         "Suggest improved parameters as a JSON object with these keys:\n"
-        '- "n_colors": int (number of color clusters, 4-64)\n'
-        '- "turdsize": int (noise suppression, 0-10, lower = more detail)\n'
+        '- "n_colors": int (4-256)\n'
+        '- "turdsize": int (0-15, lower = more detail)\n'
         '- "method": "potrace" or "contours"\n'
-        '- "epsilon": float (path simplification, 0.5-5.0, '
-        'lower = more detail)\n'
-        '- "alphamax": float (corner threshold, 0.0-1.34)\n'
-        '- "opttolerance": float (curve optimization, 0.0-1.0)\n'
-        '- "morph_kernel": int (cleanup kernel size, 0-7, '
-        '0 = no cleanup)\n\n'
+        '- "epsilon": float (0.1-5.0, lower = more detail)\n'
+        '- "alphamax": float (0.0-1.34)\n'
+        '- "opttolerance": float (0.0-1.0)\n'
+        '- "morph_kernel": int (0-7, 0 = no cleanup/smoothing)\n\n'
         "Reply with ONLY valid JSON. No explanation."
     )
 

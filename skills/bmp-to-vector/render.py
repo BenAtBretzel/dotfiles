@@ -3,7 +3,7 @@
 import logging
 import os
 import subprocess
-from typing import Tuple
+from typing import Tuple, Optional
 
 import cv2
 import numpy as np
@@ -11,15 +11,26 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def render_svg(svg_path: str, output_path: str, density: int = 150) -> str:
+def render_svg(
+    svg_path: str,
+    output_path: str,
+    density: int = 150,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
+    background: str = "white",
+) -> str:
     """Render an SVG file to a raster image using ImageMagick.
 
-    Executes ``magick <svg_path> -density <density> <output_path>``.
+    Executes ``magick -background <background> -size <width>x<height> <svg_path> <output_path>``
+    if width and height are provided, otherwise defaults to ``magick -background <background> <svg_path> -density <density> <output_path>``.
 
     Args:
         svg_path: Path to the source SVG file.
         output_path: Desired path for the rendered raster image.
-        density: Pixel density (DPI) for rasterisation.
+        density: Pixel density (DPI) for rasterisation (only if width/height not provided).
+        width: Optional target width in pixels.
+        height: Optional target height in pixels.
+        background: Canvas background color (e.g., "white", "black", or hex string).
 
     Returns:
         *output_path* on success.
@@ -31,7 +42,23 @@ def render_svg(svg_path: str, output_path: str, density: int = 150) -> str:
     if not os.path.isfile(svg_path):
         raise FileNotFoundError(f"SVG file not found: {svg_path}")
 
-    cmd = ["magick", svg_path, "-density", str(density), output_path]
+    if width is not None and height is not None:
+        cmd = [
+            "magick",
+            "-background", background,
+            "-size", f"{width}x{height}",
+            svg_path,
+            output_path,
+        ]
+    else:
+        cmd = [
+            "magick",
+            "-background", background,
+            svg_path,
+            "-density", str(density),
+            output_path,
+        ]
+
     logger.info("Running: %s", " ".join(cmd))
 
     result = subprocess.run(cmd, capture_output=True, text=True)
@@ -41,7 +68,16 @@ def render_svg(svg_path: str, output_path: str, density: int = 150) -> str:
             f"magick failed (exit {result.returncode}): {result.stderr.strip()}"
         )
 
-    logger.info("Rendered %s -> %s at %d DPI", svg_path, output_path, density)
+    if width is not None and height is not None:
+        logger.info(
+            "Rendered %s -> %s at size %dx%d with background %s",
+            svg_path, output_path, width, height, background
+        )
+    else:
+        logger.info(
+            "Rendered %s -> %s at %d DPI with background %s",
+            svg_path, output_path, density, background
+        )
     return output_path
 
 

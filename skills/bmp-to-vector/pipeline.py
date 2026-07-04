@@ -63,6 +63,12 @@ def run_iterative(
     target_ssim: float = 0.92,
     n_colors: int = 12,
     method: str = "potrace",
+    turdsize: int = 5,
+    alphamax: float = 1.0,
+    opttolerance: float = 0.3,
+    epsilon: float = 2.0,
+    morph_kernel: int = 3,
+    region_ssim_floor: float = 0.85,
 ) -> dict:
     """Run Architecture B: iterative convergence with VLM/LLM guidance.
 
@@ -70,12 +76,12 @@ def run_iterative(
     """
     initial_params = TraceParams(
         n_colors=n_colors,
-        turdsize=5,
-        alphamax=1.0,
-        opttolerance=0.3,
+        turdsize=turdsize,
+        alphamax=alphamax,
+        opttolerance=opttolerance,
         method=method,
-        epsilon=2.0,
-        morph_kernel=3,
+        epsilon=epsilon,
+        morph_kernel=morph_kernel,
     )
 
     return refine(
@@ -87,6 +93,7 @@ def run_iterative(
         max_iterations=max_iterations,
         max_retries_per_region=max_retries,
         target_ssim=target_ssim,
+        region_ssim_floor=region_ssim_floor,
         initial_params=initial_params,
     )
 
@@ -143,6 +150,18 @@ def main():
                     help="Initial number of color clusters (default: 12, or auto-detected from output SVG).")
     rp.add_argument("-m", "--method", choices=["potrace", "contours"],
                     default="potrace", help="Initial tracing method (default: potrace).")
+    rp.add_argument("-t", "--turdsize", type=int, default=5,
+                    help="Initial noise suppression (default: 5).")
+    rp.add_argument("-a", "--alphamax", type=float, default=1.0,
+                    help="Initial corner threshold (default: 1.0).")
+    rp.add_argument("-O", "--opttolerance", type=float, default=0.3,
+                    help="Initial curve optimization tolerance (default: 0.3).")
+    rp.add_argument("-e", "--epsilon", type=float, default=2.0,
+                    help="Initial path simplification epsilon (default: 2.0).")
+    rp.add_argument("-k", "--morph-kernel", type=int, default=3,
+                    help="Initial morphological kernel size, 0 to disable (default: 3).")
+    rp.add_argument("--region-ssim-floor", type=float, default=0.85,
+                    help="SSIM floor below which region refinement halts (default: 0.85).")
 
     args = parser.parse_args()
 
@@ -179,6 +198,12 @@ def main():
             target_ssim=args.target_ssim,
             n_colors=n_colors,
             method=args.method,
+            turdsize=args.turdsize,
+            alphamax=args.alphamax,
+            opttolerance=args.opttolerance,
+            epsilon=args.epsilon,
+            morph_kernel=args.morph_kernel,
+            region_ssim_floor=args.region_ssim_floor,
         )
         logging.info(f"Final stats: {stats}")
 
