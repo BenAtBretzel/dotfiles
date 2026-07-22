@@ -8,8 +8,15 @@ This document contains coding guidelines, standards, and steering rules derived 
 * **Short-Circuit & Edge Cases**: Proactively check for empty, missing, boundary, or short-circuit conditions at the start of functions to minimize cognitive load and eliminate unnecessary allocations.
 * **Detailed Error Handling**: Edge cases and unexpected calls must return detailed errors. For example, calling a custom sort function with `nil` should return an error stating the input was `nil` or missing. Error messages and types should be verified in tests whenever possible.
 * **Purity of Functions**: Prefer pure functions that do not mutate input arguments. When input immutability is expected, tests should verify that the input state remains unaltered after the function call.
-* **Python Type Checking**: New Python code must use [Beartype](https://github.com/beartype/beartype).
 * **Best Practice & Deviations**: This code style is best practice for automated tasks, and any deviations should be annotated with comments explaining the rationale.
+
+### Language-Specific Standards
+| Language | Requirements & Tooling |
+| :--- | :--- |
+| **Go** | Use standard packages like [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), and [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (Lodash-style helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (classical data structures), and [`go-playground/validator`](https://github.com/go-playground/validator) (struct tag validation) when helpful. |
+| **JavaScript** | Use [TypeScript](https://www.typescriptlang.org/) when possible. |
+| **Python** | New code must use [Beartype](https://github.com/beartype/beartype). |
+| **Ruby** | Requires [Sorbet](https://sorbet.org/). |
 
 ## 2. Code Quality & Linting Standards
 * **Formatting**: All Go files must conform to standard `gofmt`. Run `go fmt ./...` before finalizing changes.
