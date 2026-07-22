@@ -11,12 +11,14 @@ This document contains coding guidelines, standards, and steering rules derived 
 * **Best Practice & Deviations**: This code style is best practice for automated tasks, and any deviations should be annotated with comments explaining the rationale.
 
 ### Language-Specific Standards
-| Language | Requirements & Tooling |
+The following tools and libraries are best practice:
+
+| Language | Standards & Best Practice Tooling |
 | :--- | :--- |
-| **Go** | Use standard packages like [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), and [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (Lodash-style helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (classical data structures), and [`go-playground/validator`](https://github.com/go-playground/validator) (struct tag validation) when helpful. |
-| **JavaScript** | Use [TypeScript](https://www.typescriptlang.org/) when possible. |
-| **Python** | New code must use [Beartype](https://github.com/beartype/beartype). |
-| **Ruby** | Requires [Sorbet](https://sorbet.org/). |
+| **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). |
+| **JavaScript** | [TypeScript](https://www.typescriptlang.org/). |
+| **Python** | [Beartype](https://github.com/beartype/beartype) (new code). |
+| **Ruby** | [Sorbet](https://sorbet.org/). |
 
 ## 2. Code Quality & Linting Standards
 * **Formatting**: All Go files must conform to standard `gofmt`. Run `go fmt ./...` before finalizing changes.
