@@ -8,6 +8,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **Short-Circuit & Edge Cases**: Proactively check empty, missing, boundary, or short-circuit conditions at function start to minimize cognitive load and eliminate unnecessary allocations.
 * **Detailed Error Handling**: Edge cases and unexpected calls must return detailed errors (e.g., calling custom sort with `nil` returns error stating input was `nil` or missing). Verify error messages and types in tests whenever possible.
 * **Purity of Functions**: Prefer pure functions that do not mutate input arguments. When input immutability is expected, tests must verify input state remains unaltered after function calls.
+* **Symbol Shadowing**: Avoid shadowing symbols across all programming languages; use distinct, descriptive names instead.
 * **Best Practice & Deviations**: Annotate any deviations from best practices with comments explaining the rationale.
 
 ### Language-Specific Standards
