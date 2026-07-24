@@ -41,6 +41,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **AWS**: Use `aws` CLI (S3, EC2, Lambda, IAM, CloudFormation).
 * **Clipboard**: Use `wl-copy` and `wl-paste` class of tools.
 * **Reports & Pandoc**: Use `pandoc` with GitHub-flavored markdown (`-t gfm`) when creating complex reports. Iterate on markdown files first, regenerating HTML non-destructively.
+  * **CDN Assets**: Prefer reputable CDN-hosted open source CSS/JS/web assets rather than checking them in.
   * **Code Samples**: Wrap code samples in collapsible `<details><summary>` blocks containing appropriate code blocks.
   * **Build Command & Metadata**: Document the build command line within each markdown file. Include the Git SHA and HTML rendering timestamp in the generated report.
   * **Change History & Attribution**: Include an append-only list of changes at the end of all reports, signed by the agent using an attribution tag similar to Git (`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOLS]`).
