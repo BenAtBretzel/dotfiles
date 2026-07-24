@@ -16,6 +16,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 | :--- | :--- |
 | **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). |
 | **JavaScript** | [TypeScript](https://www.typescriptlang.org/). |
+| **React** | Be wary of prop drilling; prefer [`Zustand`](https://github.com/pmndrs/zustand) over Redux for state management. |
 | **Python** | [Beartype](https://github.com/beartype/beartype) (new code). |
 | **Ruby** | [Sorbet](https://sorbet.org/). |
 
