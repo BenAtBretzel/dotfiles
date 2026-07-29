@@ -41,6 +41,8 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **GitHub**: Use `gh` CLI (PRs, issues, repos, releases, gists).
 * **AWS**: Use `aws` CLI (S3, EC2, Lambda, IAM, CloudFormation).
 * **Clipboard**: Use `wl-copy` and `wl-paste` class of tools.
+
+## 5. Report Generation Standards
 * **Reports & Pandoc**: Use `pandoc` with GitHub-flavored markdown (`-t gfm`) when creating complex reports. Iterate on markdown files first, regenerating HTML non-destructively.
   * **CDN Assets**: Prefer reputable CDN-hosted open source CSS/JS/web assets rather than checking them in.
   * **Code Samples**: Wrap code samples in collapsible `<details><summary>` blocks containing appropriate code blocks.
