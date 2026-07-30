@@ -5,7 +5,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 ---
 
 ## 1. Code Style & Design Principles
-* **Short-Circuit & Edge Cases**: Proactively check empty, missing, boundary, or short-circuit conditions at function start to minimize cognitive load and eliminate unnecessary allocations.
+* **Early Exits & Short-Circuiting**: Proactively check empty, missing, boundary, or short-circuit conditions at function start to minimize cognitive load and eliminate unnecessary allocations. Prefer exiting early over nesting when possible to greatly improve readability.
 * **Detailed Error Handling**: Edge cases and unexpected calls must return detailed errors (e.g., calling custom sort with `nil` returns error stating input was `nil` or missing). Verify error messages and types in tests whenever possible.
 * **Purity of Functions**: Prefer pure functions that do not mutate input arguments. When input immutability is expected, tests must verify input state remains unaltered after function calls.
 * **Symbol Shadowing**: Avoid shadowing symbols across all programming languages; use distinct, descriptive names instead.
