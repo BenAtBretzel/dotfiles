@@ -14,7 +14,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 ### Language-Specific Standards
 | Language | Standards & Best Practice Tooling |
 | :--- | :--- |
-| **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). |
+| **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). In unit tests, always use `t.Context()` or other test context over `context.TODO()` or `context.Background()`. |
 | **JavaScript** | [TypeScript](https://www.typescriptlang.org/). |
 | **React** | Be wary of prop drilling; prefer [`Zustand`](https://github.com/pmndrs/zustand) over Redux for state management. |
 | **Python** | [Beartype](https://github.com/beartype/beartype) (new code). |
