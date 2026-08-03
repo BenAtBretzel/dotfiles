@@ -22,7 +22,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 
 ## 2. Code Quality & Verification Standards
 * **Formatting**: All Go files must conform to standard `gofmt` (`go fmt ./...` before finalizing changes).
-* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Project-specific linters must pass cleanly before finalizing.
+* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Project-specific linters must pass before finalizing.
 * **Coverage**: Achieve high statement coverage using table-driven test suites covering edge cases, boundary values, and input variations.
 * **Verification**: Never mark a task complete without running relevant build and test commands to verify runtime correctness empirically.
 
@@ -34,7 +34,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **Emojis**: Avoid emojis.
 
 ## 4. Tool Preferences & Usage
-* **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Use Python when multi-step string manipulation or complex JSON transformations exceed standard shell capabilities cleanly.
+* **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Use Python when multi-step string manipulation or complex JSON transformations exceed standard shell capabilities.
 * **Git**:
   * **Sign Commits**: Always sign commits and prompt user on failure.
   * **Pushing**: Prompt user before pushing, unless explicit session permission is granted.
