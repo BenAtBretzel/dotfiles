@@ -36,7 +36,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 ## 4. Tool Preferences & Usage
 * **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Use Python when multi-step string manipulation or complex JSON transformations exceed standard shell capabilities.
 * **Git**:
-  * **Sign Commits**: Always cryptographically sign commits with `git commit -S`. Verify the signature with `git verify-commit HEAD` after committing, and prompt the user if signing or verification fails.
+  * **Sign Commits**: Always cryptographically sign commits with `git commit -S`. Prompt the user if signing fails.
   * **Pushing**: Prompt user before pushing, unless explicit session permission is granted.
   * **Commit Message Construction**: Pass each commit-message paragraph as a separate argument. Use `git commit -S -m "<subject>" [-m "<body>"] --trailer "Assisted-by: <agent>:<model> [tools]"`; never place `\n` escape sequences inside a `-m` argument because Git records them literally. After committing, inspect the exact message with `git log -1 --format=%B`. See the [`git commit` documentation](https://git-scm.com/docs/git-commit).
   * **Metadata Tags**: Tag AI commits with `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]` per [Linux Kernel guidelines](https://docs.kernel.org/process/coding-assistants.html#attribution). `[TOOL1]` = analysis tools (`coccinelle`, `sparse`, `smatch`, `clang-tidy`); omit basic dev tools (`git`, `gcc`, `make`). Ex: `Assisted-by: Claude:claude-3-opus coccinelle sparse`.
