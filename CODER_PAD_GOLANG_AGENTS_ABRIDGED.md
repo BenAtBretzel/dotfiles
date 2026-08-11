@@ -9,7 +9,7 @@ Specialized guidelines, execution rules, and code standards for AI agents operat
 ### 1.1 Run Target Configuration (`.cpad`)
 The `.cpad` file defines project run targets in JSON format. Every target requires a unique key, a human-readable `label`, and a shell `command`.
 
-Default `.cpad` layout:
+Recommended `.cpad` layout (configured to run the entire test suite):
 ```json
 {
   "targets": {
@@ -19,13 +19,13 @@ Default `.cpad` layout:
     },
     "test": {
       "label": "Tests",
-      "command": "go test src/echo/echo_test.go"
+      "command": "go test ./..."
     }
   }
 }
 ```
 
-* **Custom Targets**: Add or update keys in the `targets` object as needed to define additional build, execution, or test tasks.
+* **Custom Targets**: Add or update keys in the `targets` object as needed to define additional build, execution, or test tasks. Ensure the `test` target command executes all package tests (`go test ./...`) rather than restricting execution to a single test file.
 * **Label**: Used for visual UI button display.
 * **Command**: Shell command executed when triggering the target.
 
