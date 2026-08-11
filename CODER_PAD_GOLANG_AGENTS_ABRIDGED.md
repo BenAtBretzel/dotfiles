@@ -50,8 +50,8 @@ The `.cpad` JSON file configures UI run targets:
 
 ## 3. Code Quality & Empirical Verification
 
-* **Formatting**: Ensure all `.go` files pass standard formatting (`go fmt ./...`).
-* **Linting**: Maintain zero lint issues with `golangci-lint run`.
+* **Formatting**: Format code using standard formatting (`go fmt ./...`).
+* **Linting & Analysis Tools**: Static analysis tools (e.g., `golangci-lint`, `go vet`) are optional. If a tool is unavailable in the CoderPad environment, inform the user and proceed.
 * **Test Coverage**: Construct table-driven test suites covering boundary conditions and error paths.
 * **Target Verification**: Validate changes empirically using the `.cpad` run targets (`go run`, `go test`) or shell execution before marking tasks complete.
 
