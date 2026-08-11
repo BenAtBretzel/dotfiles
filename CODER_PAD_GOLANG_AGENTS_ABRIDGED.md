@@ -29,10 +29,6 @@ The `.cpad` JSON file configures UI run targets:
 * **Interview Priorities**: Prioritize clean, readable, correct, and testable code over premature runtime or memory optimizations.
 * **Container Boundaries**: Container provides 2 GB RAM and a 75 MB network bandwidth limit per session. Keep package installations (`go get`) and network I/O minimal.
 
-### 1.3 Collaboration & Editor Rules
-* **File Modifications**: Modify code files via the editor API rather than direct shell edits to preserve visibility for all session participants.
-* **Shell Usage**: Restrict shell operations to running test suites (`go test ./...`), package installation (`go get <package>`), environment inspection, or code formatting/linting tools.
-
 ---
 
 ## 2. Go Code Style & Technical Principles
