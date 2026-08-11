@@ -4,12 +4,11 @@ Specialized guidelines, execution rules, and code standards for AI agents operat
 
 ---
 
-## 1. CoderPad Go Environment Architecture & Constraints
+## 1. CoderPad Go Environment Architecture & Context
 
 ### 1.1 Run Target Configuration (`.cpad`)
-The `.cpad` file defines project run targets in JSON format. Every target requires a unique key, a human-readable `label`, and a shell `command`.
+The `.cpad` JSON file configures UI run targets:
 
-Recommended `.cpad` layout (configured to run the entire test suite):
 ```json
 {
   "targets": {
@@ -24,15 +23,11 @@ Recommended `.cpad` layout (configured to run the entire test suite):
   }
 }
 ```
+* Ensure the `test` target command executes all package tests (`go test ./...`).
 
-* **Custom Targets**: Add or update keys in the `targets` object as needed to define additional build, execution, or test tasks. Ensure the `test` target command executes all package tests (`go test ./...`) rather than restricting execution to a single test file.
-* **Label**: Used for visual UI button display.
-* **Command**: Shell command executed when triggering the target.
-
-### 1.2 Resource & Container Limits
-* **Memory Limit**: 2 GB RAM maximum. Write memory-efficient code, avoid unnecessary allocations, and minimize memory overhead.
-* **Network Bandwidth Limit**: 75 MB total consumed bandwidth per container lifetime. Minimize external HTTP calls during testing and restrict `go get` installations to required dependencies.
-* **CPU Usage**: Unthrottled by default; keep computational tasks efficient to prevent performance degradation.
+### 1.2 Environment Focus & Container Boundaries
+* **Interview Priorities**: Prioritize clean, readable, correct, and testable code over premature runtime or memory optimizations.
+* **Container Boundaries**: Container provides 2 GB RAM and a 75 MB network bandwidth limit per session. Keep package installations (`go get`) and network I/O minimal.
 
 ### 1.3 Collaboration & Editor Rules
 * **File Modifications**: Modify code files via the editor API rather than direct shell edits to preserve visibility for all session participants.
@@ -42,7 +37,7 @@ Recommended `.cpad` layout (configured to run the entire test suite):
 
 ## 2. Go Code Style & Technical Principles
 
-* **Early Exits & Short-Circuiting**: Check empty, missing, boundary, or short-circuit conditions at function start to minimize cognitive load and avoid memory allocations under container limits.
+* **Early Exits & Short-Circuiting**: Check empty, missing, boundary, or short-circuit conditions at function start to minimize cognitive load and enhance code readability.
 * **Detailed Error Handling**: Edge cases and unexpected calls must return descriptive errors. Validate error types and messages in test suites.
 * **Purity of Functions**: Prefer pure functions that do not mutate input data. Verify input immutability in unit tests.
 * **Symbol Shadowing**: Explicitly avoid variable or package symbol shadowing; use clear, distinct naming.
