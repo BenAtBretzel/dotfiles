@@ -61,7 +61,3 @@ The `.cpad` JSON file configures UI run targets:
 
 * **Writing Style**: Factual, concise, and objective. Avoid conversational filler and emojis.
 * **Documentation**: Document exported functions and complex algorithms. Use markdown links when referring to external specifications or documentation.
-* **Git Conventions**:
-  * **Signed Commits**: Always cryptographically sign commits using `git commit -S`. Prompt the user if key signing fails.
-  * **Commit Structure**: Pass multi-line commit messages using separate `-m` arguments (`git commit -S -m "<subject>" -m "<body>"`). Include proper trailers (`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOLS]`).
-  * **Remote Push**: Prompt the user before running `git push`.
