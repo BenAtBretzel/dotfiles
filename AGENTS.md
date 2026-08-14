@@ -36,7 +36,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 ## 4. Tool Preferences & Usage
 * **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Use Python when multi-step string manipulation or complex JSON transformations exceed standard shell capabilities.
 * **Git**:
-  * **Sign Commits**: Always cryptographically sign commits with `git commit -S`. Prompt the user if signing fails.
+  * **Sign Commits**: Always cryptographically sign commits with `git commit -S`. A successful commit is sufficient; do not run `git verify-commit`. Prompt the user if signing fails.
   * **Pushing**: Prompt user before pushing, unless explicit session permission is granted.
   * **Commit Message Construction**: Pass each commit-message paragraph as a separate argument. Use `git commit -S -m "<subject>" [-m "<body>"] --trailer "Assisted-by: <agent>:<model> [tools]"`; never place `\n` escape sequences inside a `-m` argument because Git records them literally. After committing, inspect the exact message with `git log -1 --format=%B`. See the [`git commit` documentation](https://git-scm.com/docs/git-commit).
   * **Metadata Tags**: Tag AI commits with `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]` per [Linux Kernel guidelines](https://docs.kernel.org/process/coding-assistants.html#attribution). `[TOOL1]` = analysis tools (`coccinelle`, `sparse`, `smatch`, `clang-tidy`); omit basic dev tools (`git`, `gcc`, `make`). Ex: `Assisted-by: Claude:claude-3-opus coccinelle sparse`.
@@ -46,8 +46,9 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 
 ## 5. Report Generation Standards
 * **Reports & Pandoc**: Use `pandoc` with GitHub-flavored markdown (`-t gfm`) when creating complex reports. Iterate on markdown files first, regenerating HTML non-destructively.
+  * **Portability**: Keep all report prompts, skills, scripts, filters, and templates vendor-neutral and repository-local. Use relative paths and standard command-line interfaces; do not depend on agent-specific home directories, APIs, tools, or metadata. Keep agent-specific adapters optional and limited to invoking the shared implementation.
   * **CDN Assets**: Prefer reputable CDN-hosted open source CSS/JS/web assets rather than checking them in.
   * **Code Samples**: Wrap code samples in collapsible `<details><summary>` blocks containing appropriate code blocks.
   * **Build Command & Metadata**: Document the build command line within each markdown file. Include the Git SHA and HTML rendering timestamp in the generated report.
   * **Change History & Attribution**: Include an append-only list of changes at the end of all reports, signed by the agent using an attribution tag similar to Git (`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOLS]`).
-  * **Section IDs**: Ensure all section headings include HTML id attributes (e.g., `## Section Title {#section-title}`) so generated HTML can be linked to directly.
+  * **Section Links**: Keep Markdown headings free of explicit IDs. During HTML generation, use a shared, repository-local Pandoc Lua filter to make each heading a self-link through its automatically generated ID (e.g., `<h2 id="section-title"><a href="#section-title">Section Title</a></h2>`). The filter must leave Markdown and GFM output unchanged.
