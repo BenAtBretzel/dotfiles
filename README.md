@@ -9,8 +9,7 @@ Dotfiles shared across development machines.
 ln -s "$PWD/AGENTS.md" ~/.gemini/AGENTS.md
 ```
 
-### Codex
-[Codex](https://learn.chatgpt.com/docs/agent-configuration/agents-md.md) reads `./AGENTS.md` automatically in local checkouts. For global setup:
+### [Codex](https://learn.chatgpt.com/docs/agent-configuration/agents-md.md)
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}"
 ln -s "$PWD/AGENTS.md" "${CODEX_HOME:-$HOME/.codex}/AGENTS.md"
