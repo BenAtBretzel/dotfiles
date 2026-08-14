@@ -50,3 +50,4 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
   * **Code Samples**: Wrap code samples in collapsible `<details><summary>` blocks containing appropriate code blocks.
   * **Build Command & Metadata**: Document the build command line within each markdown file. Include the Git SHA and HTML rendering timestamp in the generated report.
   * **Change History & Attribution**: Include an append-only list of changes at the end of all reports, signed by the agent using an attribution tag similar to Git (`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOLS]`).
+  * **Section IDs**: Ensure all section headings include HTML id attributes (e.g., `## Section Title {#section-title}`) so generated HTML can be linked to directly.
