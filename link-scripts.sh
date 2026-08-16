@@ -45,8 +45,7 @@ for script_path in "$SCRIPT_DIR"/*; do
                     ERROR_COUNT=$((ERROR_COUNT + 1))
                 fi
             else
-                ln -s "$script_path" "$target_link"
-                if [[ $? -eq 0 ]]; then
+                if ln -s "$script_path" "$target_link"; then
                     echo "Linked: $target_link -> $script_path"
                 else
                     echo "Error: Failed to link $target_link -> $script_path"
@@ -56,8 +55,7 @@ for script_path in "$SCRIPT_DIR"/*; do
         elif [[ "$ACTION" == "unlink" ]]; then
             if [[ -L "$target_link" ]]; then
                 if [[ "$(readlink "$target_link")" == "$script_path" ]]; then
-                    rm "$target_link"
-                    if [[ $? -eq 0 ]]; then
+                    if rm "$target_link"; then
                         echo "Unlinked: $target_link"
                     else
                         echo "Error: Failed to unlink $target_link"

@@ -15,6 +15,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 | Language | Standards & Best Practice Tooling |
 | :--- | :--- |
 | **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). In unit tests, always use `t.Context()` or other test context over `context.TODO()` or `context.Background()`. |
+| **Bash/Shell** | [`shellcheck`](https://www.shellcheck.net/) for static analysis, linting, and security. |
 | **JavaScript** | [TypeScript](https://www.typescriptlang.org/). |
 | **React** | Be wary of prop drilling; prefer [`Zustand`](https://github.com/pmndrs/zustand) over Redux for state management. |
 | **Python** | [Beartype](https://github.com/beartype/beartype) (new code). |
@@ -22,7 +23,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 
 ## 2. Code Quality & Verification Standards
 * **Formatting**: All Go files must conform to standard `gofmt` (`go fmt ./...` before finalizing changes).
-* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Project-specific linters must pass before finalizing.
+* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Bash/Shell scripts must pass `shellcheck` to enforce linting and static security analysis. Project-specific linters must pass before finalizing.
 * **Coverage**: Achieve high statement coverage using table-driven test suites covering edge cases, boundary values, and input variations.
 * **Verification**: Never mark a task complete without running relevant build and test commands to verify runtime correctness empirically.
 
