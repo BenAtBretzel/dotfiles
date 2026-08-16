@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Run glow with terminal width and pager
+glow -p --width "$(tput cols)" "$@"
