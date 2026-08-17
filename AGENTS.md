@@ -20,10 +20,11 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 | **React** | Be wary of prop drilling; prefer [`Zustand`](https://github.com/pmndrs/zustand) over Redux for state management. |
 | **Python** | [Beartype](https://github.com/beartype/beartype) (new code). |
 | **Ruby** | [Sorbet](https://sorbet.org/). |
+| **GitHub Actions / CI** | [`zizmor`](https://github.com/zizmorcore/zizmor) for static analysis and security linting of GitHub Actions, Dependabot configurations, and pre-commit scripts. |
 
 ## 2. Code Quality & Verification Standards
 * **Formatting**: All Go files must conform to standard `gofmt` (`go fmt ./...` before finalizing changes).
-* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Bash/Shell scripts must pass `shellcheck` to enforce linting and static security analysis. Project-specific linters must pass before finalizing.
+* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Bash/Shell scripts must pass `shellcheck` to enforce linting and static security analysis. CI/CD scripts (GitHub Actions, Dependabot, pre-commit) must be analyzed using `zizmor`. Project-specific linters must pass before finalizing.
 * **Coverage**: Achieve high statement coverage using table-driven test suites covering edge cases, boundary values, and input variations.
 * **Verification**: Never mark a task complete without running relevant build and test commands to verify runtime correctness empirically.
 
