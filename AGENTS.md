@@ -36,7 +36,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **Emojis**: Avoid emojis.
 
 ## 4. Tool Preferences & Usage
-* **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Prefer [`yq`](https://github.com/mikefarah/yq) for `jq`-like querying and transformations across structured formats (`csv`, `hcl`, `ini`, `json`, `kyaml`, `lua`, `props`, `toml`, `tsv`, `uri`, `xml`, `yaml`) using `--input-format=<format>` (e.g., `--input-format=csv`) and `--output-format=<format>` (e.g., `--output-format=toml`). Use Python when multi-step string manipulation or complex transformations exceed standard shell capabilities.
+* **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Prefer [`yq`](https://github.com/mikefarah/yq) for `jq`-like querying and transformations across structured formats (`csv`, `hcl`, `ini`, `json`, `kyaml`, `lua`, `props`, `toml`, `tsv`, `uri`, `xml`, `yaml`) using `--input-format=<format>` (e.g., `--input-format=csv`) and `--output-format=<format>` (e.g., `--output-format=toml`). Maximize CLI tools and pipeline composition for data extraction and transformations; use Python only when state management or complex algorithms make shell pipelines impractical.
 * **Git**:
   * **Sign Commits**: Always cryptographically sign commits with `git commit -S`. A successful commit is sufficient; do not run `git verify-commit`. Prompt the user if signing fails.
   * **Pushing**: Prompt user before pushing, unless explicit session permission is granted.
