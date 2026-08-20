@@ -1,67 +1,41 @@
 # dotfiles
 
-Dotfiles shared across development machines.
+Dotfiles, utility scripts, and agent configurations shared across development machines.
+
+## Setup & Symlink Management
+
+Use [`manage-link.sh`](manage-link.sh) to manage symbolic links for scripts and agent skills:
+
+```bash
+./manage-link.sh                   # Link scripts to $HOME/bin and skills to all agents
+./manage-link.sh --scripts         # Link only scripts to $HOME/bin
+./manage-link.sh --skills          # Link skills to all agents (default: all)
+./manage-link.sh --skills=agy      # Link skills to a specific agent (aider|agy|codex|vibe)
+./manage-link.sh --unlink          # Remove managed symlinks for scripts and skills
+./manage-link.sh --help            # Display help and usage information
+```
 
 ## Agent Setup
 
-Run these commands from the repository root. Skills remain in this repository and are symlinked into each agent's global skills directory.
+Run from the repository root to symlink `AGENTS.md` and repository skills:
 
-### [Antigravity CLI](https://antigravity.google/docs/cli/cli-plugins)
+* **[Antigravity CLI](https://antigravity.google/docs/cli/cli-plugins)**:
+  * Instructions: `mkdir -p "$HOME/.gemini" && ln -s "$PWD/AGENTS.md" "$HOME/.gemini/AGENTS.md"`
+  * Skills: `./manage-link.sh --skills=agy`
+* **[Codex](https://learn.chatgpt.com/docs/build-skills)**:
+  * Instructions: `mkdir -p "${CODEX_HOME:-$HOME/.codex}" && ln -s "$PWD/AGENTS.md" "${CODEX_HOME:-$HOME/.codex}/AGENTS.md"`
+  * Skills: `./manage-link.sh --skills=codex`
+* **[Mistral Vibe](https://github.com/mistralai/mistral-vibe#skills-system)**:
+  * Instructions: `mkdir -p "${VIBE_HOME:-$HOME/.vibe}" && ln -s "$PWD/AGENTS.md" "${VIBE_HOME:-$HOME/.vibe}/AGENTS.md"`
+  * Skills: `./manage-link.sh --skills=vibe`
+* **[Aider](https://aider.chat)**:
+  * Skills: `./manage-link.sh --skills=aider`
 
-Install the shared agent instructions:
+## Scripts
 
-```bash
-mkdir -p "$HOME/.gemini"
-ln -s "$PWD/AGENTS.md" "$HOME/.gemini/AGENTS.md"
-```
+### Directory of Scripts
 
-Install the repository skills:
-
-```bash
-mkdir -p "$HOME/.gemini/antigravity-cli/skills"
-for skill_directory in "$PWD"/skills/*; do
-  [ -f "$skill_directory/SKILL.md" ] || continue
-  ln -s "$skill_directory" "$HOME/.gemini/antigravity-cli/skills/${skill_directory##*/}"
-done
-```
-
-### [Codex](https://learn.chatgpt.com/docs/build-skills)
-
-Install the shared agent instructions:
-
-```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}"
-ln -s "$PWD/AGENTS.md" "${CODEX_HOME:-$HOME/.codex}/AGENTS.md"
-```
-
-Install the repository skills:
-
-```bash
-mkdir -p "$HOME/.agents/skills"
-for skill_directory in "$PWD"/skills/*; do
-  [ -f "$skill_directory/SKILL.md" ] || continue
-  ln -s "$skill_directory" "$HOME/.agents/skills/${skill_directory##*/}"
-done
-```
-
-### [Mistral Vibe](https://github.com/mistralai/mistral-vibe#skills-system)
-
-Install the shared agent instructions:
-
-```bash
-mkdir -p "${VIBE_HOME:-$HOME/.vibe}"
-ln -s "$PWD/AGENTS.md" "${VIBE_HOME:-$HOME/.vibe}/AGENTS.md"
-```
-
-Install the repository skills:
-
-```bash
-mkdir -p "${VIBE_HOME:-$HOME/.vibe}/skills"
-for skill_directory in "$PWD"/skills/*; do
-  [ -f "$skill_directory/SKILL.md" ] || continue
-  ln -s "$skill_directory" "${VIBE_HOME:-$HOME/.vibe}/skills/${skill_directory##*/}"
-done
-```
+* [`glowp`](scripts/glowp): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output fitted to terminal width with pager support (`glow -p --width "$(tput cols)" "$@"`).
 
 ## License
 
