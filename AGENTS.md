@@ -46,7 +46,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **AWS**: Use `aws` CLI (S3, EC2, Lambda, IAM, CloudFormation).
 * **Clipboard**: Use `wl-copy` and `wl-paste` class of tools.
 * **Web Search**: When searching the web, consider also searching in Arabic, Chinese, French, German, Japanese, Korean, and Spanish to avoid constraining searches to the English-speaking world.
-* **Asset Sourcing & Attribution**: When searching the web and using external data or placeholder assets (e.g., images, graphics, components), prefer open source, [Creative Commons](https://creativecommons.org/), and free sources. Always attribute the source location/URL, original creator, license, and relevant citation and redistribution metadata.
+* **Asset Sourcing & Attribution**: When searching the web and using external data or placeholder assets (e.g., images, graphics, components), prefer open source, [Creative Commons](https://creativecommons.org/), and free sources. Always attribute the source location/URL, original creator, license, retrieval timestamp, and relevant citation and redistribution metadata.
   * **In-Code Attribution**: Place attribution in header or inline code comments when supported by the file format.
   * **Sidecar Metadata File (`.meta.toml`)**: If attribution cannot be placed in a code comment (e.g., binary assets, image formats, media files), use an adjacent `<original_file_name>.meta.toml` file containing a single `[meta]` [TOML](https://toml.io/) table of string key-value pairs (`key = "value"`) containing citation metadata attributes and data.
 
