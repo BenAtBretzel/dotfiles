@@ -14,7 +14,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 ### Language-Specific Standards
 | Language | Standards & Best Practice Tooling |
 | :--- | :--- |
-| **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). In unit tests, always use `t.Context()` or other test context over `context.TODO()` or `context.Background()`. |
+| **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). In unit tests, always use `t.Context()` or other test context over `context.TODO()` or `context.Background()`. Avoid using deprecated components whenever possible; check associated comments or source code. Prefer `errors.Is` and `errors.As` for error comparisons. |
 | **Bash/Shell** | [`shellcheck`](https://www.shellcheck.net/) for static analysis, linting, and security. |
 | **JavaScript** | [TypeScript](https://www.typescriptlang.org/). |
 | **React** | Be wary of prop drilling; prefer [`Zustand`](https://github.com/pmndrs/zustand) over Redux for state management. |
@@ -24,7 +24,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 
 ## 2. Code Quality & Verification Standards
 * **Formatting**: All Go files must conform to standard `gofmt` (`go fmt ./...` before finalizing changes).
-* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Bash/Shell scripts must pass `shellcheck` to enforce linting and static security analysis. CI/CD scripts (GitHub Actions, Dependabot, pre-commit) must be analyzed using `zizmor`. Project-specific linters must pass before finalizing.
+* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Configure and use `gocognit` to enforce cognitive complexity limits (aiming for a threshold of 15-20) to ensure code remains human-readable; prefer it over `gocyclo` which penalizes flat switch statements. Bash/Shell scripts must pass `shellcheck` to enforce linting and static security analysis. CI/CD scripts (GitHub Actions, Dependabot, pre-commit) must be analyzed using `zizmor`. Project-specific linters must pass before finalizing.
 * **Coverage**: Achieve high statement coverage using table-driven test suites covering edge cases, boundary values, and input variations.
 * **Verification**: Never mark a task complete without running relevant build and test commands to verify runtime correctness empirically.
 
@@ -45,9 +45,14 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **GitHub**: Use `gh` CLI (PRs, issues, repos, releases, gists).
 * **AWS**: Use `aws` CLI (S3, EC2, Lambda, IAM, CloudFormation).
 * **Clipboard**: Use `wl-copy` and `wl-paste` class of tools.
+* **Web Search**: When searching the web, consider also searching in Arabic, Chinese, French, German, Japanese, Korean, and Spanish to avoid constraining searches to the English-speaking world.
+* **Asset Sourcing & Attribution**: When searching the web and using external data or placeholder assets (e.g., images, graphics, components), prefer open source, [Creative Commons](https://creativecommons.org/), and free sources. Always attribute the source location/URL, original creator, license, and relevant citation and redistribution metadata.
+  * **In-Code Attribution**: Place attribution in header or inline code comments when supported by the file format.
+  * **Sidecar Metadata File (`.meta.toml`)**: If attribution cannot be placed in a code comment (e.g., binary assets, image formats, media files), use an adjacent `<original_file_name>.meta.toml` file containing a single `[meta]` [TOML](https://toml.io/) table of string key-value pairs (`key = "value"`) containing citation metadata attributes and data.
 
 ## 5. Report Generation Standards
 * **Reports & Pandoc**: Use `pandoc` with GitHub-flavored markdown (`-t gfm`) when creating complex reports. Iterate on markdown files first, regenerating HTML non-destructively.
+* **Slide Decks & Marp**: Use [Marp](https://marp.app/) for slide decks with mermaid diagrams if needed.
   * **Portability**: Keep all report prompts, skills, scripts, filters, and templates vendor-neutral and repository-local. Use relative paths and standard command-line interfaces; do not depend on agent-specific home directories, APIs, tools, or metadata. Keep agent-specific adapters optional and limited to invoking the shared implementation.
   * **CDN Assets**: Prefer reputable CDN-hosted open source CSS/JS/web assets rather than checking them in.
   * **Code Samples**: Wrap code samples in collapsible `<details><summary>` blocks containing appropriate code blocks.
