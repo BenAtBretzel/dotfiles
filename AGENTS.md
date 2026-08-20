@@ -9,6 +9,7 @@ Coding guidelines, standards, and steering rules for AI agents. Strictly adhere 
 * **Detailed Error Handling**: Edge cases and unexpected calls must return detailed errors (e.g., calling custom sort with `nil` returns error stating input was `nil` or missing). Verify error messages and types in tests whenever possible.
 * **Purity of Functions**: Prefer pure functions that do not mutate input arguments. When input immutability is expected, tests must verify input state remains unaltered after function calls.
 * **Symbol Shadowing**: Avoid shadowing symbols across all programming languages; use distinct, descriptive names instead.
+* **Lexicographical Ordering & File Structure**: Prefer idiomatic file structures, using alphabetical/lexicographical sorting to break ties. Whenever practical, sort series of attributes, constants, fields, functions, methods, types, and related symbols alphabetically within the file, without overriding language-, project-, user-, or framework-specific conventions.
 * **Best Practice & Deviations**: Annotate any deviations from best practices with comments explaining the rationale.
 
 ### Language-Specific Standards
