@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Run glow in TUI mode for smart markdown wrapping and dynamic resizing
+glow --tui "$@"

@@ -35,7 +35,7 @@ Run from the repository root to symlink `AGENTS.md` and repository skills:
 
 ### Directory of Scripts
 
-* [`glowp`](scripts/glowp): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output fitted to terminal width with pager support (`glow -p --width "$(tput cols)" "$@"`).
+* [`glowt`](scripts/glowt): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output in TUI mode with smart dynamic resizing (`glow --tui "$@"`).
 
 ## License
 
