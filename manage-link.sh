@@ -7,6 +7,7 @@ MANAGE_SCRIPTS=0
 MANAGE_SKILLS=0
 SKILLS_AGENT=""
 EXPLICIT_TARGET=0
+YES_ALL=0
 
 usage() {
     cat << 'EOF'
@@ -17,11 +18,13 @@ Manage symbolic links for dotfiles scripts and agent skills.
 Actions:
   --link                 Create symbolic links (default)
   --unlink               Remove symbolic links
+  --clean                Remove dead symbolic links in $HOME/bin pointing to this repo
 
 Options:
   --scripts              Manage script links to $HOME/bin
   --skills[=AGENT]       Manage skill links for AGENT (default: all)
                          Supported agents: all, aider, agy, codex, vibe
+  --yes                  Automatically answer yes to all prompts (for --clean)
   -h, --help             Display this help message
 
 If neither --scripts nor --skills is specified, both will be managed (with --skills=all).
@@ -37,6 +40,14 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --unlink)
             ACTION="unlink"
+            shift
+            ;;
+        --clean)
+            ACTION="clean"
+            shift
+            ;;
+        --yes)
+            YES_ALL=1
             shift
             ;;
         --scripts)
@@ -178,6 +189,54 @@ sync_symlink() {
     fi
 }
 
+clean_dead_links() {
+    local yes_all="$1"
+    local errors=0
+
+    if [[ ! -d "$BIN_DIR" ]]; then
+        return 0
+    fi
+
+    local link_path
+    local found_dead=0
+    for link_path in "$BIN_DIR"/*; do
+        [[ -e "$link_path" || -L "$link_path" ]] || continue
+        if [[ -L "$link_path" && ! -e "$link_path" ]]; then
+            local target_path
+            target_path="$(readlink "$link_path")"
+            if [[ "$target_path" == "$REPO_DIR"* ]]; then
+                found_dead=1
+                if [[ "$yes_all" -eq 1 ]]; then
+                    if rm "$link_path"; then
+                        echo "Removed dead link: $link_path -> $target_path"
+                    else
+                        echo "Error: Failed to remove dead link $link_path" >&2
+                        errors=$((errors + 1))
+                    fi
+                else
+                    read -r -p "Remove dead link $link_path -> $target_path? [y/N] " confirm
+                    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                        if rm "$link_path"; then
+                            echo "Removed dead link: $link_path -> $target_path"
+                        else
+                            echo "Error: Failed to remove dead link $link_path" >&2
+                            errors=$((errors + 1))
+                        fi
+                    else
+                        echo "Skipped: $link_path"
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    if [[ "$found_dead" -eq 0 ]]; then
+        echo "Checked: No dead links pointing to this repo found in $BIN_DIR"
+    fi
+
+    return "$errors"
+}
+
 manage_scripts() {
     local action="$1"
     local errors=0
@@ -272,12 +331,16 @@ manage_skills() {
 
 TOTAL_ERRORS=0
 
-if [[ "$MANAGE_SCRIPTS" -eq 1 ]]; then
-    manage_scripts "$ACTION" || TOTAL_ERRORS=$((TOTAL_ERRORS + $?))
-fi
+if [[ "$ACTION" == "clean" ]]; then
+    clean_dead_links "$YES_ALL" || TOTAL_ERRORS=$((TOTAL_ERRORS + $?))
+else
+    if [[ "$MANAGE_SCRIPTS" -eq 1 ]]; then
+        manage_scripts "$ACTION" || TOTAL_ERRORS=$((TOTAL_ERRORS + $?))
+    fi
 
-if [[ "$MANAGE_SKILLS" -eq 1 ]]; then
-    manage_skills "$ACTION" "$SKILLS_AGENT" || TOTAL_ERRORS=$((TOTAL_ERRORS + $?))
+    if [[ "$MANAGE_SKILLS" -eq 1 ]]; then
+        manage_skills "$ACTION" "$SKILLS_AGENT" || TOTAL_ERRORS=$((TOTAL_ERRORS + $?))
+    fi
 fi
 
 if [[ "$TOTAL_ERRORS" -gt 0 ]]; then
