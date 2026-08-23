@@ -41,6 +41,7 @@ Run from the repository root to symlink `AGENTS.md` and repository skills:
   #!/bin/bash
   GH_TOKEN="YOUR_PAT_HERE" gh "$@"
   ```
+* [`git-for-bots`](scripts/git-for-bots): Wrapper for the `git` CLI to ensure bots commit and push using the bot identity and credentials rather than the primary user.
 
 ## License
 

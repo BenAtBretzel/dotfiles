@@ -1,0 +1,14 @@
+#!/bin/bash
+# git-for-bots: Wrapper for git to use the bot account
+
+# Use -c to override git config values for the duration of the command.
+# This ensures that both commit metadata and pushing (via credential helper)
+# use the bot account.
+
+exec git \
+  -c user.name="Bretzel Labs Bot" \
+  -c user.email="320339112+BretzelLabsBot@users.noreply.github.com" \
+  -c credential.helper= \
+  -c credential.helper="!gh-for-bots auth git-credential" \
+  -c commit.gpgsign=false \
+  "$@"
