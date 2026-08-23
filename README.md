@@ -36,6 +36,11 @@ Run from the repository root to symlink `AGENTS.md` and repository skills:
 ### Directory of Scripts
 
 * [`glowt`](scripts/glowt): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output in TUI mode with smart dynamic resizing (`glow --tui "$@"`).
+* `gh-for-bots`: Wrapper for the `gh` CLI. Example implementation:
+  ```bash
+  #!/bin/bash
+  GH_TOKEN="YOUR_PAT_HERE" gh "$@"
+  ```
 
 ## License
 
