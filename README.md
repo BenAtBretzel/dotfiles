@@ -31,17 +31,21 @@ Run from the repository root to symlink `AGENTS.md` and repository skills:
 * **[Aider](https://aider.chat)**:
   * Skills: `./manage-link.sh --skills=aider`
 
+## Configuration
+
+Copy [`config.toml.sample`](config.toml.sample) to `config.toml` (ignored by Git) to configure bot identity and credentials for Git and GitHub CLI operations:
+
+```bash
+cp config.toml.sample config.toml
+```
+
+Agents extract these values using `yq` to set command-scoped Git flags (`git -c user.name="$(yq '.github.user' config.toml)" -c user.email="$(yq '.git.email' config.toml)" -c user.signingkey="$(yq '.git.signingkey' config.toml)"`) and GitHub authentication tokens (`GH_TOKEN="$(gh auth token --user "$(yq '.github.user' config.toml)")"`).
+
 ## Scripts
 
 ### Directory of Scripts
 
 * [`glowt`](scripts/glowt): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output in TUI mode with smart dynamic resizing (`glow --tui "$@"`).
-* `gh-for-bots`: Wrapper for the `gh` CLI. Example implementation:
-  ```bash
-  #!/bin/bash
-  GH_TOKEN="YOUR_PAT_HERE" gh "$@"
-  ```
-* [`git-for-bots`](scripts/git-for-bots): Wrapper for the `git` CLI to ensure bots commit and push using the bot identity and credentials rather than the primary user.
 
 ## License
 
