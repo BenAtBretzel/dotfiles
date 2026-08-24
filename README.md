@@ -38,6 +38,7 @@ Copy [`config.toml.sample`](config.toml.sample) to `$HOME/.config/sdlcbot/config
 ```bash
 mkdir -p "$HOME/.config/sdlcbot"
 cp config.toml.sample "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}"
+chmod 0600 "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}"
 ```
 
 Example configuration (`$HOME/.config/sdlcbot/config.toml` or `$SDLCBOT_CONFIG`):
@@ -51,7 +52,24 @@ signingkey = ""
 user = "YourGithubUserName"
 ```
 
-Agents extract these values using `yq` to set command-scoped Git flags (`git -c user.name="$(yq '.github.user' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")" -c user.email="$(yq '.git.email' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")" -c user.signingkey="$(yq '.git.signingkey' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")"`) and GitHub authentication tokens (`GH_TOKEN="$(gh auth token --user "$(yq '.github.user' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")")"`).
+### Agent Integration
+
+Agents extract these values using `yq` to set command-scoped Git flags and GitHub authentication tokens:
+
+```bash
+CFG="${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}"
+GIT_USER="$(yq '.github.user' "$CFG")"
+GIT_EMAIL="$(yq '.git.email' "$CFG")"
+GIT_KEY="$(yq '.git.signingkey' "$CFG")"
+
+# Command-scoped Git execution
+git -c user.name="$GIT_USER" -c user.email="$GIT_EMAIL" -c user.signingkey="$GIT_KEY" <command>
+
+# Command-scoped GitHub CLI execution
+GH_TOKEN="$(gh auth token --user "$GIT_USER")" gh <command>
+```
+
+### Validation
 
 Validate configuration sanity without leaking secrets using [`scripts/verify-config`](scripts/verify-config):
 
