@@ -14,7 +14,7 @@ Arguments:
 
 Options:
   --dry-run[=BOOL]       Enable or disable dry-run mode (default: true).
-                         When set to false, omits --clean from systemd-tmpfiles call.
+                         When set to false, performs actual cleanup instead of dry-run.
   -h, --help             Display this help message
 EOF
 }
@@ -82,10 +82,9 @@ if ! systemd-analyze timespan "$DURATION"; then
     exit 1
 fi
 
-TMPFILES_ARGS=()
+TMPFILES_ARGS=("--clean")
 if [[ "$DRY_RUN" == "true" ]]; then
-    TMPFILES_ARGS+=("--clean")
+    TMPFILES_ARGS+=("--dry-run")
 fi
-TMPFILES_ARGS+=("--dry-run")
 
 systemd-tmpfiles "${TMPFILES_ARGS[@]}" <(echo "d /tmp - - - $DURATION")
