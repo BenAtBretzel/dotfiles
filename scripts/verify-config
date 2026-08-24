@@ -1,0 +1,66 @@
+#!/bin/bash
+# verify-config: Validate dotfiles configuration sanity without leaking secrets.
+
+set -euo pipefail
+
+CONFIG_FILE="${1:-${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}}"
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "Error: Configuration file '$CONFIG_FILE' not found." >&2
+    echo "Hint: Copy config.toml.sample to $CONFIG_FILE and configure your identity." >&2
+    exit 1
+fi
+
+if ! command -v yq >/dev/null 2>&1; then
+    echo "Error: 'yq' is required for config validation but not found in PATH." >&2
+    exit 1
+fi
+
+# Validate TOML parsing without leaking contents on error
+if ! yq --input-format=toml --output-format=yaml '.' "$CONFIG_FILE" >/dev/null 2>&1; then
+    echo "Error: Failed to parse '$CONFIG_FILE' as valid TOML." >&2
+    exit 1
+fi
+
+ERRORS=0
+
+# Validate [github].user
+GH_USER="$(yq --input-format=toml --output-format=yaml '.github.user // ""' "$CONFIG_FILE" 2>/dev/null)"
+if [[ -z "$GH_USER" || "$GH_USER" == "null" ]]; then
+    echo "Error: Missing required field [github].user in $CONFIG_FILE." >&2
+    ERRORS=$((ERRORS + 1))
+elif [[ "$GH_USER" == "YourGithubUserName" ]]; then
+    echo "Error: [github].user is still set to placeholder 'YourGithubUserName'." >&2
+    ERRORS=$((ERRORS + 1))
+elif [[ ! "$GH_USER" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$ ]]; then
+    echo "Error: [github].user has an invalid GitHub username format." >&2
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Validate [git].email
+GIT_EMAIL="$(yq --input-format=toml --output-format=yaml '.git.email // ""' "$CONFIG_FILE" 2>/dev/null)"
+if [[ -z "$GIT_EMAIL" || "$GIT_EMAIL" == "null" ]]; then
+    echo "Error: Missing required field [git].email in $CONFIG_FILE." >&2
+    ERRORS=$((ERRORS + 1))
+elif [[ "$GIT_EMAIL" == "user@example.com" ]]; then
+    echo "Error: [git].email is still set to placeholder 'user@example.com'." >&2
+    ERRORS=$((ERRORS + 1))
+elif [[ ! "$GIT_EMAIL" =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then
+    echo "Error: [git].email has an invalid email format." >&2
+    ERRORS=$((ERRORS + 1))
+fi
+
+# Validate [git].signingkey (optional, but if present must be string)
+SIGNING_KEY="$(yq --input-format=toml --output-format=yaml '.git.signingkey // ""' "$CONFIG_FILE" 2>/dev/null)"
+if [[ "$SIGNING_KEY" == "null" ]]; then
+    echo "Error: [git].signingkey must be a string if defined." >&2
+    ERRORS=$((ERRORS + 1))
+fi
+
+if [[ "$ERRORS" -gt 0 ]]; then
+    echo "Validation failed with $ERRORS error(s)." >&2
+    exit 1
+fi
+
+echo "Configuration in '$CONFIG_FILE' is valid."
+exit 0

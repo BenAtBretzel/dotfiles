@@ -33,13 +33,14 @@ Run from the repository root to symlink `AGENTS.md` and repository skills:
 
 ## Configuration
 
-Copy [`config.toml.sample`](config.toml.sample) to `config.toml` (ignored by Git) and update it with your Git email, optional signing key, and GitHub username:
+Copy [`config.toml.sample`](config.toml.sample) to `$HOME/.config/sdlcbot/config.toml` (or custom path specified by `SDLCBOT_CONFIG`) and update it with your Git email, optional signing key, and GitHub username:
 
 ```bash
-cp config.toml.sample config.toml
+mkdir -p "$HOME/.config/sdlcbot"
+cp config.toml.sample "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}"
 ```
 
-Example configuration (`config.toml`):
+Example configuration (`$HOME/.config/sdlcbot/config.toml` or `$SDLCBOT_CONFIG`):
 
 ```toml
 [git]
@@ -50,13 +51,21 @@ signingkey = ""
 user = "YourGithubUserName"
 ```
 
-Agents extract these values using `yq` to set command-scoped Git flags (`git -c user.name="$(yq '.github.user' config.toml)" -c user.email="$(yq '.git.email' config.toml)" -c user.signingkey="$(yq '.git.signingkey' config.toml)"`) and GitHub authentication tokens (`GH_TOKEN="$(gh auth token --user "$(yq '.github.user' config.toml)")"`).
+Agents extract these values using `yq` to set command-scoped Git flags (`git -c user.name="$(yq '.github.user' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")" -c user.email="$(yq '.git.email' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")" -c user.signingkey="$(yq '.git.signingkey' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")"`) and GitHub authentication tokens (`GH_TOKEN="$(gh auth token --user "$(yq '.github.user' "${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}")")"`).
+
+Validate configuration sanity without leaking secrets using [`scripts/verify-config`](scripts/verify-config):
+
+```bash
+./scripts/verify-config            # Validate $SDLCBOT_CONFIG (default: $HOME/.config/sdlcbot/config.toml)
+./scripts/verify-config /path/to/custom.toml
+```
 
 ## Scripts
 
 ### Directory of Scripts
 
 * [`glowt`](scripts/glowt): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output in TUI mode with smart dynamic resizing (`glow --tui "$@"`).
+* [`verify-config`](scripts/verify-config): Validate configuration file (`$SDLCBOT_CONFIG` or `$HOME/.config/sdlcbot/config.toml`) structure, syntax, and required fields without leaking secrets.
 
 ## License
 
