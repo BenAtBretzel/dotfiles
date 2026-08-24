@@ -1,63 +1,68 @@
 # Agent Coding Guidelines & Session Steering
 
-Coding guidelines, standards, and steering rules for AI agents. Strictly adhere to these practices.
+Coding guidelines, standards, and steering rules for AI agents working in this repository.
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174). The additional terms defined by [RFC 6919](https://www.rfc-editor.org/rfc/rfc6919) MAY be used for informal guidance, but MUST NOT replace the RFC 2119 keywords when stating repository requirements.
+
+These instructions apply to this repository. More-specific `AGENTS.md` files, if present, MAY add or narrow these instructions for their subtree. Explicit user requests take precedence over recommendations, but MUST NOT override safety constraints.
 
 ---
 
 ## 1. Code Style & Design Principles
-* **Early Exits & Short-Circuiting**: Proactively check empty, missing, boundary, or short-circuit conditions at function start to minimize cognitive load and eliminate unnecessary allocations. Prefer exiting early over nesting when possible to greatly improve readability.
-* **Detailed Error Handling**: Edge cases and unexpected calls must return detailed errors (e.g., calling custom sort with `nil` returns error stating input was `nil` or missing). Verify error messages and types in tests whenever possible.
-* **Purity of Functions**: Prefer pure functions that do not mutate input arguments. When input immutability is expected, tests must verify input state remains unaltered after function calls.
-* **Symbol Shadowing**: Avoid shadowing symbols across all programming languages; use distinct, descriptive names instead.
-* **Lexicographical Ordering & File Structure**: Prefer idiomatic file structures, using alphabetical/lexicographical sorting to break ties. Whenever practical, sort series of attributes, constants, fields, functions, methods, types, and related symbols alphabetically within the file, without overriding language-, project-, user-, or framework-specific conventions.
-* **Best Practice & Deviations**: Annotate any deviations from best practices with comments explaining the rationale.
+* **Early Exits & Short-Circuiting**: Code SHOULD check empty, missing, boundary, or short-circuit conditions early to minimize cognitive load and unnecessary allocations. Code SHOULD prefer early exits over nesting when doing so improves readability.
+* **Detailed Error Handling**: Edge cases and unexpected calls MUST return useful, detailed errors. Tests SHOULD verify error types and, when stable and meaningful, error messages.
+* **Purity of Functions**: Functions SHOULD be pure and SHOULD NOT mutate input arguments unless mutation is part of their documented contract. When input immutability is expected, tests MUST verify that the input remains unchanged.
+* **Symbol Shadowing**: Code MUST NOT shadow symbols when distinct, descriptive names are practical.
+* **Lexicographical Ordering & File Structure**: Code SHOULD use idiomatic file structures and alphabetical or lexicographical ordering to break ties, unless language-, project-, user-, or framework-specific conventions take precedence.
+* **Best Practice & Deviations**: Deviations from these guidelines SHOULD be documented with a brief rationale when the reason is not self-evident.
 
 ### Language-Specific Standards
 | Language | Standards & Best Practice Tooling |
 | :--- | :--- |
-| **Go** | Stdlib [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), [`cmp`](https://pkg.go.dev/cmp). Prefer [`samber/lo`](https://github.com/samber/lo) (helpers), [`emirpasic/gods`](https://github.com/emirpasic/gods) (data structures), [`go-playground/validator`](https://github.com/go-playground/validator) (validation). In unit tests, always use `t.Context()` or other test context over `context.TODO()` or `context.Background()`. Avoid using deprecated components whenever possible; check associated comments or source code. Prefer `errors.Is` and `errors.As` for error comparisons. |
-| **Bash/Shell** | [`shellcheck`](https://www.shellcheck.net/) for static analysis, linting, and security. |
-| **JavaScript** | [TypeScript](https://www.typescriptlang.org/). |
-| **React** | Be wary of prop drilling; prefer [`Zustand`](https://github.com/pmndrs/zustand) over Redux for state management. |
-| **Python** | [Beartype](https://github.com/beartype/beartype) (new code). |
-| **Ruby** | [Sorbet](https://sorbet.org/). |
-| **GitHub Actions / CI** | [`zizmor`](https://github.com/zizmorcore/zizmor) for static analysis and security linting of GitHub Actions, Dependabot configurations, and pre-commit scripts. |
+| **Go** | New code SHOULD prefer the standard-library [`maps`](https://pkg.go.dev/maps), [`slices`](https://pkg.go.dev/slices), and [`cmp`](https://pkg.go.dev/cmp) packages where applicable. New dependencies MAY use [`samber/lo`](https://github.com/samber/lo), [`emirpasic/gods`](https://github.com/emirpasic/gods), or [`go-playground/validator`](https://github.com/go-playground/validator) when they provide a clear benefit and fit existing project dependencies. Unit tests MUST use `t.Context()` or another appropriate test context instead of `context.TODO()` or `context.Background()`. Code SHOULD avoid deprecated components. Error comparisons MUST prefer `errors.Is` and `errors.As`. |
+| **Bash/Shell** | Shell scripts MUST pass [`shellcheck`](https://www.shellcheck.net/). |
+| **JavaScript** | New JavaScript code SHOULD use [TypeScript](https://www.typescriptlang.org/). |
+| **React** | React code SHOULD avoid unnecessary prop drilling. New shared state SHOULD use [`Zustand`](https://github.com/pmndrs/zustand) rather than Redux unless project requirements dictate otherwise. |
+| **Python** | New Python code SHOULD use [Beartype](https://github.com/beartype/beartype) where runtime type checking is appropriate. |
+| **Ruby** | New Ruby code SHOULD use [Sorbet](https://sorbet.org/) where static type checking is appropriate. |
+| **GitHub Actions / CI** | Changed GitHub Actions, Dependabot, and pre-commit configuration MUST pass [`zizmor`](https://github.com/zizmorcore/zizmor). |
 
 ## 2. Code Quality & Verification Standards
-* **Formatting**: All Go files must conform to standard `gofmt` (`go fmt ./...` before finalizing changes).
-* **Linter**: Go code must pass `golangci-lint run` with **0 issues**. Configure and use `gocognit` to enforce cognitive complexity limits (aiming for a threshold of 15-20) to ensure code remains human-readable; prefer it over `gocyclo` which penalizes flat switch statements. Bash/Shell scripts must pass `shellcheck` to enforce linting and static security analysis. CI/CD scripts (GitHub Actions, Dependabot, pre-commit) must be analyzed using `zizmor`. Project-specific linters must pass before finalizing.
-* **Coverage**: Achieve high statement coverage using table-driven test suites covering edge cases, boundary values, and input variations.
-* **Verification**: Never mark a task complete without running relevant build and test commands to verify runtime correctness empirically.
+* **Formatting**: When Go files change, they MUST be formatted with `gofmt`; `go fmt ./...` SHOULD be run before finalizing changes.
+* **Linter**: When Go code changes, `golangci-lint run` MUST pass with zero issues. `gocognit` SHOULD be configured with a documented project threshold; a target of 15–20 is RECOMMENDED. When relevant, Bash/Shell scripts MUST pass `shellcheck`, and CI/CD configuration MUST pass `zizmor`. Project-specific linters MUST pass before finalizing changes.
+* **Coverage**: Tests SHOULD use table-driven cases where appropriate and SHOULD cover edge cases, boundary values, and meaningful input variations. Projects MAY define a specific coverage threshold elsewhere.
+* **Verification**: Before a task is marked complete, relevant build, test, formatting, and lint commands MUST be run. If a required tool or library cannot be installed as described below, agents MUST prompt the user and report that the code style could not be fully applied.
 
 ## 3. Writing & Communication Style
-* **Factual & Objective**: Comments, documentation, and explanations must be strictly factual and objective.
-* **Terse & Concise**: Maintain a professional tone bordering on terse. Avoid conversational filler.
-* **Citations & Links**: Provide markdown links to original sources or authoritative docs when referencing external definitions/tools (prefer permalinks or include "retrieved at" date).
-* **Code Documentation & Comments**: Place documentation on functions; use inline comments only when needed to explain complexity, constants, or magic numbers.
-* **Emojis**: Avoid emojis.
+* **Factual & Objective**: Comments, documentation, and explanations MUST be factual and objective.
+* **Terse & Concise**: Communication SHOULD be concise and professional. Unnecessary conversational filler SHOULD be avoided.
+* **Citations & Links**: References to external definitions or tools SHOULD link to original or authoritative sources. Permalinks or retrieval dates MAY be included when useful.
+* **Code Documentation & Comments**: Public functions SHOULD have documentation. Inline comments SHOULD be limited to explaining complexity, constants, or non-obvious behavior.
+* **Emojis**: Emojis SHOULD NOT be used in repository documentation or code comments.
 
 ## 4. Tool Preferences & Usage
-* **Workspace Isolation & Temporary Directories**: Only modify the present working directory (`pwd` / workspace root) when explicitly requested. By default, all transient operations—such as `git clone`, `curl`, `wget`, temporary downloads, and scratch scripts—must use temporary directories scoped to the current conversation session or a unique task-local temporary location (e.g., under the conversation's scratchpad directory or a uniquely generated temp directory). User-local package installations (e.g., `pip install`, `npm install`) are exempt, as they are safe for concurrent processes to install shared user-local packages. In addition, all builds must use session-scoped temporary directories; set environment variables such as `GOCACHE`, `GOTMPDIR`, `GOMODCACHE` (Go), `PYTHON_EGG_CACHE`, `PYTHON_PIP_CACHE` (Python), `GEM_HOME`, `BUNDLE_PATH` (Ruby), and similar build-related caching directories to session-specific paths to ensure complete isolation between concurrent sessions and prevent cache contamination.
-* **Scripting & CLI**: Prefer standard utilities (`jq`, `curl`, `sed`, `find`, `xargs`, `ncat`, etc.). Prefer [`yq`](https://github.com/mikefarah/yq) for `jq`-like querying and transformations across structured formats (`csv`, `hcl`, `ini`, `json`, `kyaml`, `lua`, `props`, `toml`, `tsv`, `uri`, `xml`, `yaml`) using `--input-format=<format>` (e.g., `--input-format=csv`) and `--output-format=<format>` (e.g., `--output-format=toml`). Maximize CLI tools and pipeline composition for data extraction and transformations; use Python only when state management or complex algorithms make shell pipelines impractical.
-* **Git**: Extract bot identity from configuration (`CFG="${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}"`, `GIT_USER="$(yq '.github.user' "$CFG")"`, `GIT_EMAIL="$(yq '.git.email' "$CFG")"`, `GIT_KEY="$(yq '.git.signingkey' "$CFG")"`). Use `git -c user.name="$GIT_USER" -c user.email="$GIT_EMAIL" -c user.signingkey="$GIT_KEY"` (or target user from configuration) for git interactions so that commits are properly attributed to the configured bot account and signing key.
-  * **Sign Commits**: Always cryptographically sign commits with `git -c user.name="$GIT_USER" -c user.email="$GIT_EMAIL" -c user.signingkey="$GIT_KEY" commit -S` (unless GPG signing fails due to missing bot keys, in which case drop the `-S` flag). A successful commit is sufficient; do not run `git verify-commit`. Prompt the user if signing fails for reasons other than missing keys.
-  * **Pushing**: Prompt user before pushing, unless explicit session permission is granted.
-  * **Commit Message Construction**: Pass each commit-message paragraph as a separate argument. Use `git -c user.name="$GIT_USER" -c user.email="$GIT_EMAIL" -c user.signingkey="$GIT_KEY" commit -S -m "<subject>" [-m "<body>"] --trailer "Assisted-by: <agent>:<model> [tools]"`; never place `\n` escape sequences inside a `-m` argument because Git records them literally. After committing, inspect the exact message with `git log -1 --format=%B`. See the [`git commit` documentation](https://git-scm.com/docs/git-commit).
-  * **Metadata Tags**: Tag AI commits with `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]` per [Linux Kernel guidelines](https://docs.kernel.org/process/coding-assistants.html#attribution). `[TOOL1]` = analysis tools (`coccinelle`, `sparse`, `smatch`, `clang-tidy`); omit basic dev tools (`git`, `gcc`, `make`). Ex: `Assisted-by: Claude:claude-3-opus coccinelle sparse`.
-* **GitHub**: Use `GH_TOKEN="$(gh auth token --user "$GIT_USER")" gh ...` (e.g., `GH_TOKEN="$(gh auth token --user BretzelLabsBot)" gh ...`) for all interactions (PRs, issues, repos, releases, gists) to run the `gh` CLI as the desired GitHub bot user without modifying global authentication state.
-* **AWS**: Use `aws` CLI (S3, EC2, Lambda, IAM, CloudFormation).
-* **Clipboard**: Use `wl-copy` and `wl-paste` class of tools.
-* **Web Search**: When searching the web, consider also searching in Arabic, Chinese, French, German, Japanese, Korean, and Spanish to avoid constraining searches to the English-speaking world.
-* **Asset Sourcing & Attribution**: When searching the web and using external data or placeholder assets (e.g., images, graphics, components), prefer open source, [Creative Commons](https://creativecommons.org/), and free sources. Always attribute the source location/URL, original creator, license, retrieval timestamp, and relevant citation and redistribution metadata.
-  * **In-Code Attribution**: Place attribution in header or inline code comments when supported by the file format.
-  * **Sidecar Metadata File (`.meta.toml`)**: If attribution cannot be placed in a code comment (e.g., binary assets, image formats, media files), use an adjacent `<original_file_name>.meta.toml` file containing a single `[meta]` [TOML](https://toml.io/) table of string key-value pairs (`key = "value"`) containing citation metadata attributes and data.
+* **Workspace Isolation & Temporary Directories**: Agents MUST NOT modify files outside the repository unless explicitly authorized. Transient operations—such as `git clone`, `curl`, `wget`, temporary downloads, and scratch scripts—MUST use a session-scoped or unique task-local temporary directory. User-local package installations MAY use their normal user-local cache. Builds MUST use session-scoped caches and temporary directories where the relevant tool supports them.
+* **Tool and Library Availability**: When a REQUIRED tool or library is unavailable, agents MUST attempt to install it in a user-local, project-local, conversation-local, or task-local location. Installations MUST NOT modify system-wide state without explicit authorization. If installation fails, agents MUST prompt the user and report that the code style could not be fully applied.
+* **Scripting & CLI**: Standard utilities SHOULD be preferred for routine shell work. [`yq`](https://github.com/mikefarah/yq) MAY be used for structured-data transformations. Shell pipelines SHOULD be preferred when they remain clear; Python COULD be used for stateful or complex algorithms.
+* **Git**: When committing, agents MUST extract bot identity from configuration (`CFG="${SDLCBOT_CONFIG:-$HOME/.config/sdlcbot/config.toml}"`, `GIT_USER="$(yq '.github.user' "$CFG")"`, `GIT_EMAIL="$(yq '.git.email' "$CFG")"`, `GIT_KEY="$(yq '.git.signingkey' "$CFG")"`) and MUST use `git -c user.name="$GIT_USER" -c user.email="$GIT_EMAIL" -c user.signingkey="$GIT_KEY"` so commits are attributed to the configured bot account and signing key.
+  * **Sign Commits**: Commits MUST be cryptographically signed with `git -c user.name="$GIT_USER" -c user.email="$GIT_EMAIL" -c user.signingkey="$GIT_KEY" commit -S`. If signing fails because the configured bot key is missing, the commit MAY omit `-S`; signing failures for other reasons MUST be reported to the user.
+  * **Pushing**: Agents MUST obtain user approval before pushing unless explicit session permission has been granted.
+  * **Commit Message Construction**: Each commit-message paragraph MUST be passed as a separate argument. The commit command MUST include `--trailer "Assisted-by: <agent>:<model> [tools]"`; `\n` escape sequences MUST NOT be placed inside a `-m` argument. After committing, agents MUST inspect the exact message with `git log -1 --format=%B`. See the [`git commit` documentation](https://git-scm.com/docs/git-commit).
+  * **Metadata Tags**: AI-assisted commits MUST include `Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]` according to the [Linux Kernel guidelines](https://docs.kernel.org/process/coding-assistants.html#attribution). `[TOOL1]` refers to analysis tools such as `coccinelle`, `sparse`, `smatch`, and `clang-tidy`; basic development tools such as `git`, `gcc`, and `make` MUST be omitted.
+* **GitHub**: GitHub CLI operations SHOULD use `GH_TOKEN="$(gh auth token --user "$GIT_USER")" gh ...` to run as the configured bot account without modifying global authentication state.
+* **AWS**: AWS CLI operations SHOULD use the `aws` CLI for S3, EC2, Lambda, IAM, and CloudFormation.
+* **Clipboard**: Clipboard operations SHOULD use `wl-copy` and `wl-paste` where available.
+* **Web Search**: When a web search is necessary, agents SHOULD CONSIDER searching in multiple languages, including Arabic, Chinese, French, German, Japanese, Korean, and Spanish.
+* **Asset Sourcing & Attribution**: When searching the web and using external data or placeholder assets (e.g., images, graphics, components), the source SHOULD be open, [Creative Commons](https://creativecommons.org/), or freely redistributable. Attribution MUST include the source location/URL, original creator, license, retrieval timestamp, and relevant citation and redistribution metadata.
+  * **In-Code Attribution**: Attribution SHOULD be placed in header or inline code comments when supported by the file format.
+  * **Sidecar Metadata File (`.meta.toml`)**: If attribution cannot be placed in a code comment (e.g., binary assets or image files), an adjacent `<original_file_name>.meta.toml` file MUST be used. It MUST contain a single `[meta]` [TOML](https://toml.io/) table of string key-value pairs (`key = "value"`) containing citation metadata attributes and data.
 
 ## 5. Report Generation Standards
-* **Reports & Pandoc**: Use `pandoc` with GitHub-flavored markdown (`-t gfm`) when creating complex reports. Iterate on markdown files first, regenerating HTML non-destructively.
-* **Slide Decks & Marp**: Use [Marp](https://marp.app/) for slide decks with mermaid diagrams if needed.
-  * **Portability**: Keep all report prompts, skills, scripts, filters, and templates vendor-neutral and repository-local. Use relative paths and standard command-line interfaces; do not depend on agent-specific home directories, APIs, tools, or metadata. Keep agent-specific adapters optional and limited to invoking the shared implementation.
-  * **CDN Assets**: Prefer reputable CDN-hosted open source CSS/JS/web assets rather than checking them in.
-  * **Code Samples**: Wrap code samples in collapsible `<details><summary>` blocks containing appropriate code blocks.
-  * **Build Command & Metadata**: Document the build command line within each markdown file. Include the Git SHA and HTML rendering timestamp in the generated report.
-  * **Change History & Attribution**: Include an append-only list of changes at the end of all reports, signed by the agent using an attribution tag similar to Git (`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOLS]`).
-  * **Section Links**: Keep Markdown headings free of explicit IDs. During HTML generation, use a shared, repository-local Pandoc Lua filter to make each heading a self-link through its automatically generated ID (e.g., `<h2 id="section-title"><a href="#section-title">Section Title</a></h2>`). The filter must leave Markdown and GFM output unchanged.
+* **Reports & Pandoc**: Complex reports MUST use `pandoc` with GitHub-flavored markdown (`-t gfm`). Markdown SHOULD be iterated on before HTML is regenerated, and HTML generation MUST be non-destructive.
+* **Slide Decks & Marp**: Slide decks SHOULD use [Marp](https://marp.app/) and MAY use Mermaid diagrams where appropriate.
+  * **Portability**: Report prompts, skills, scripts, filters, and templates MUST remain vendor-neutral and repository-local. Relative paths and standard command-line interfaces MUST be used. Agent-specific adapters MAY invoke the shared implementation but MUST remain OPTIONAL.
+  * **CDN Assets**: Reputable CDN-hosted open-source assets SHOULD be preferred over checking equivalent assets into the repository.
+  * **Code Samples**: Code samples SHOULD be wrapped in collapsible `<details><summary>` blocks containing appropriate code blocks.
+  * **Build Command & Metadata**: Each report MUST document its build command. Generated reports MUST include the Git SHA and HTML rendering timestamp.
+  * **Change History & Attribution**: Reports MUST include an append-only change history signed by the agent using an attribution tag similar to Git (`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOLS]`).
+  * **Section Links**: Markdown headings MUST NOT contain explicit IDs. HTML generation MUST use a shared, repository-local Pandoc Lua filter to make each heading a self-link through its automatically generated ID. The filter MUST leave Markdown and GFM output unchanged.
