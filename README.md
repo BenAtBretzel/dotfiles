@@ -33,10 +33,21 @@ Run from the repository root to symlink `AGENTS.md` and repository skills:
 
 ## Configuration
 
-Copy [`config.toml.sample`](config.toml.sample) to `config.toml` (ignored by Git) to configure bot identity and credentials for Git and GitHub CLI operations:
+Copy [`config.toml.sample`](config.toml.sample) to `config.toml` (ignored by Git) and update it with your Git email, optional signing key, and GitHub username:
 
 ```bash
 cp config.toml.sample config.toml
+```
+
+Example configuration (`config.toml`):
+
+```toml
+[git]
+email = "user@example.com"
+signingkey = ""
+
+[github]
+user = "YourGithubUserName"
 ```
 
 Agents extract these values using `yq` to set command-scoped Git flags (`git -c user.name="$(yq '.github.user' config.toml)" -c user.email="$(yq '.git.email' config.toml)" -c user.signingkey="$(yq '.git.signingkey' config.toml)"`) and GitHub authentication tokens (`GH_TOKEN="$(gh auth token --user "$(yq '.github.user' config.toml)")"`).

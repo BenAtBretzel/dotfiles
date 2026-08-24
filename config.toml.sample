@@ -1,6 +1,6 @@
 [git]
-email = "320339112+BretzelLabsBot@users.noreply.github.com"
+email = "user@example.com"
 signingkey = ""
 
 [github]
-user = "BretzelLabsBot"
+user = "YourGithubUserName"
