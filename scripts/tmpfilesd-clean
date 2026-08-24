@@ -1,0 +1,91 @@
+#!/bin/bash
+# tmpfilesd-clean: Clean temporary files matching duration via systemd-tmpfiles.
+
+set -euo pipefail
+
+usage() {
+    cat << 'EOF'
+Usage: tmpfilesd-clean [DURATION] [OPTIONS]
+
+Clean temporary files under /tmp older than the specified duration using systemd-tmpfiles.
+
+Arguments:
+  DURATION               Time duration parseable by systemd (default: 1d)
+
+Options:
+  --dry-run[=BOOL]       Enable or disable dry-run mode (default: true).
+                         When set to false, omits --clean from systemd-tmpfiles call.
+  -h, --help             Display this help message
+EOF
+}
+
+if [[ "$#" -gt 2 ]]; then
+    echo "Error: Too many arguments specified (accepts 0, 1, or 2 arguments)." >&2
+    usage >&2
+    exit 1
+fi
+
+if ! command -v systemd-analyze >/dev/null 2>&1; then
+    echo "Error: 'systemd-analyze' is required but not found in PATH." >&2
+    exit 1
+fi
+
+if ! command -v systemd-tmpfiles >/dev/null 2>&1; then
+    echo "Error: 'systemd-tmpfiles' is required but not found in PATH." >&2
+    exit 1
+fi
+
+DRY_RUN=true
+POSITIONAL_ARGS=()
+
+for arg in "$@"; do
+    case "$arg" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --dry-run=false|--dry-run=False)
+            DRY_RUN=false
+            ;;
+        --dry-run=true|--dry-run=True|--dry-run)
+            DRY_RUN=true
+            ;;
+        --dry-run=*)
+            echo "Error: Invalid value for --dry-run: '${arg#*=}'. Expected true or false." >&2
+            exit 1
+            ;;
+        --*)
+            echo "Error: Unknown option '$arg'." >&2
+            usage >&2
+            exit 1
+            ;;
+        *)
+            POSITIONAL_ARGS+=("$arg")
+            ;;
+    esac
+done
+
+if [[ "${#POSITIONAL_ARGS[@]}" -gt 1 ]]; then
+    echo "Error: Too many positional arguments specified." >&2
+    usage >&2
+    exit 1
+fi
+
+if [[ "${#POSITIONAL_ARGS[@]}" -eq 1 ]]; then
+    DURATION="${POSITIONAL_ARGS[0]}"
+else
+    DURATION="1d"
+fi
+
+if ! systemd-analyze timespan "$DURATION"; then
+    echo "Error: Failed to validate time span '$DURATION'." >&2
+    exit 1
+fi
+
+TMPFILES_ARGS=()
+if [[ "$DRY_RUN" == "true" ]]; then
+    TMPFILES_ARGS+=("--clean")
+fi
+TMPFILES_ARGS+=("--dry-run")
+
+systemd-tmpfiles "${TMPFILES_ARGS[@]}" <(echo "d /tmp - - - $DURATION")

@@ -83,6 +83,7 @@ Validate configuration sanity without leaking secrets using [`scripts/verify-con
 ### Directory of Scripts
 
 * [`glowt`](scripts/glowt): Run [Glow](https://github.com/charmbracelet/glow) formatted markdown output in TUI mode with smart dynamic resizing (`glow --tui "$@"`).
+* [`tmpfilesd-clean`](scripts/tmpfilesd-clean): Validate time duration via `systemd-analyze timespan` and clean temporary files matching the duration using `systemd-tmpfiles`.
 * [`verify-config`](scripts/verify-config): Validate configuration file (`$SDLCBOT_CONFIG` or `$HOME/.config/sdlcbot/config.toml`) structure, syntax, and required fields without leaking secrets.
 
 ## License
