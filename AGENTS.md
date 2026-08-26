@@ -58,7 +58,7 @@ These instructions apply to this repository. More-specific `AGENTS.md` files, if
   * **Sidecar Metadata File (`.meta.toml`)**: If attribution cannot be placed in a code comment (e.g., binary assets or image files), an adjacent `<original_file_name>.meta.toml` file MUST be used. It MUST contain a single `[meta]` [TOML](https://toml.io/) table of string key-value pairs (`key = "value"`) containing citation metadata attributes and data.
 
 ## 5. Report Generation Standards
-* **Reports & Pandoc**: Complex reports MUST use `pandoc` with GitHub-flavored markdown (`-t gfm`). Markdown SHOULD be iterated on before HTML is regenerated, and HTML generation MUST be non-destructive.
+* **Reports & Pandoc**: Complex reports MUST use `pandoc` with GitHub-flavored markdown (`-t gfm`).
 * **Slide Decks & Marp**: Slide decks SHOULD use [Marp](https://marp.app/) and MAY use Mermaid diagrams where appropriate.
   * **Portability**: Report prompts, skills, scripts, filters, and templates MUST remain vendor-neutral and repository-local. Relative paths and standard command-line interfaces MUST be used. Agent-specific adapters MAY invoke the shared implementation but MUST remain OPTIONAL.
   * **CDN Assets**: Reputable CDN-hosted open-source assets SHOULD be preferred over checking equivalent assets into the repository.
